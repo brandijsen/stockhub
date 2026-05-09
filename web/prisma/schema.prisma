@@ -1,0 +1,238 @@
+// StockHub — PostgreSQL (Supabase) + Auth.js adapter + domain models
+// Business rule: at most one User with SUPERADMIN — enforce in app/DB (partial unique index optional).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// --- Auth.js (Prisma adapter) + app fields ---------------------------------
+
+enum UserRole {
+  USER
+  ADMIN
+  SUPERADMIN
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?   @db.Text // bcrypt/argon hash; null for OAuth-only users
+  role          UserRole  @default(USER)
+
+  accounts             Account[]
+  sessions             Session[]
+  movements            Movement[]
+  notifications        Notification[]
+  supplierOrdersClosed SupplierOrder[] @relation("SupplierOrderClosedBy")
+  supplierOrdersCreated SupplierOrder[] @relation("SupplierOrderCreatedBy")
+  customerOrders       CustomerOrder[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// --- Catalog & stock --------------------------------------------------------
+
+model Article {
+  id           String   @id @default(cuid())
+  code         String   @unique
+  name         String
+  description  String?  @db.Text
+  unit         String   @default("pz")
+  stock        Int      @default(0)
+  sogliaMinima Int      @default(0)
+
+  movements           Movement[]
+  supplierOrderLines  SupplierOrderLine[]
+  customerOrderLines  CustomerOrderLine[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum MovementType {
+  ADJUSTMENT // manual +/− rettifica
+  LOAD       // e.g. automatic inbound after supplier order SUCCEEDED
+  UNLOAD     // e.g. customer order creation
+}
+
+model Movement {
+  id                       String        @id @default(cuid())
+  type                     MovementType
+  delta                    Int // positive or negative quantity change
+  articleId                String
+  userId                   String
+  relatedSupplierOrderId   String?
+
+  article              Article        @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  user                 User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  relatedSupplierOrder SupplierOrder? @relation(fields: [relatedSupplierOrderId], references: [id], onDelete: SetNull)
+
+  note      String?  @db.Text
+  createdAt DateTime @default(now())
+
+  @@index([articleId, createdAt])
+  @@index([userId, createdAt])
+}
+
+// --- Notifications ----------------------------------------------------------
+
+model Notification {
+  id       String    @id @default(cuid())
+  userId   String
+  type     String // e.g. STOCK_ADJUSTMENT, SUPPLIER_ORDER_ARRIVED
+  title    String?
+  body     String    @db.Text
+  readAt   DateTime?
+  // optional pointers for deep links / audit
+  articleId        String?
+  supplierOrderId  String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, readAt])
+  @@index([userId, createdAt])
+}
+
+// --- Suppliers & purchase orders -------------------------------------------
+
+model Supplier {
+  id      String  @id @default(cuid())
+  name    String
+  email   String
+  phone   String?
+  address String? @db.Text
+
+  orders SupplierOrder[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum SupplierOrderStatus {
+  PENDING
+  ARRIVED_CHECKING
+  CHECKED
+  SUCCEEDED
+  DONE
+}
+
+model SupplierOrder {
+  id     String              @id @default(cuid())
+  status SupplierOrderStatus @default(PENDING)
+
+  supplierId  String
+  supplier    Supplier @relation(fields: [supplierId], references: [id], onDelete: Restrict)
+  createdById String
+  createdBy   User     @relation("SupplierOrderCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+
+  checkedAt      DateTime? // when status became CHECKED
+  closedAt       DateTime? // when SUCCEEDED or DONE
+  closedById     String?
+  closedBy       User?     @relation("SupplierOrderClosedBy", fields: [closedById], references: [id], onDelete: SetNull)
+  adminCloseNote String?   @db.Text // free text at close (esp. DONE)
+
+  lines    SupplierOrderLine[]
+  movements Movement[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, createdAt(sort: Desc)])
+  @@index([supplierId, createdAt(sort: Desc)])
+}
+
+model SupplierOrderLine {
+  id                String @id @default(cuid())
+  supplierOrderId   String
+  articleId         String
+  qtyOrdered        Int
+  qtyReceivedActual Int? // filled during ARRIVED_CHECKING / CHECKED
+  lineConform       Boolean? // "V" / conformity per riga; refine in UI
+
+  supplierOrder SupplierOrder @relation(fields: [supplierOrderId], references: [id], onDelete: Cascade)
+  article       Article       @relation(fields: [articleId], references: [id], onDelete: Restrict)
+
+  @@unique([supplierOrderId, articleId])
+}
+
+// --- Customer orders --------------------------------------------------------
+
+enum CustomerOrderStatus {
+  OPEN
+  PICKED_UP
+}
+
+model CustomerOrder {
+  id           String               @id @default(cuid())
+  customerName String
+  status       CustomerOrderStatus  @default(OPEN)
+  createdById  String
+  createdBy    User                 @relation(fields: [createdById], references: [id], onDelete: Restrict)
+
+  lines CustomerOrderLine[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, createdAt(sort: Desc)])
+}
+
+model CustomerOrderLine {
+  id              String @id @default(cuid())
+  customerOrderId String
+  articleId       String
+  quantity        Int
+
+  customerOrder CustomerOrder @relation(fields: [customerOrderId], references: [id], onDelete: Cascade)
+  article       Article       @relation(fields: [articleId], references: [id], onDelete: Restrict)
+
+  @@unique([customerOrderId, articleId])
+}
