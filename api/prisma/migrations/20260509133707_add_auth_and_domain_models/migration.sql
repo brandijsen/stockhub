@@ -68,7 +68,7 @@ CREATE TABLE "Article" (
     "description" TEXT,
     "unit" TEXT NOT NULL DEFAULT 'pz',
     "stock" INTEGER NOT NULL DEFAULT 0,
-    "sogliaMinima" INTEGER NOT NULL DEFAULT 0,
+    "minThreshold" INTEGER NOT NULL DEFAULT 0,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 

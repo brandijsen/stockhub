@@ -11,6 +11,30 @@ dotenv.config({
 
 const prisma = new PrismaClient();
 
+/** Product families for the handbags catalog (idempotent upsert by slug). */
+const PRODUCT_CATEGORIES = [
+  { name: "Tote", slug: "tote" },
+  { name: "Crossbody", slug: "crossbody" },
+  { name: "Clutch", slug: "clutch" },
+  { name: "Shoulder bag", slug: "shoulder-bag" },
+  { name: "Bucket", slug: "bucket" },
+  { name: "Backpack", slug: "backpack" },
+  { name: "Wallet", slug: "wallet" },
+  { name: "Belt bag", slug: "belt-bag" },
+] as const;
+
+async function seedCategories(): Promise<void> {
+  for (const category of PRODUCT_CATEGORIES) {
+    await prisma.category.upsert({
+      where: { slug: category.slug },
+      update: { name: category.name },
+      create: category,
+    });
+  }
+
+  console.log(`Categories ready: ${PRODUCT_CATEGORIES.map((c) => c.name).join(", ")}`);
+}
+
 function seedAdminNames(): { firstName: string; lastName: string } {
   const first = process.env.SEED_SUPERADMIN_FIRST_NAME?.trim();
   const last = process.env.SEED_SUPERADMIN_LAST_NAME?.trim();
@@ -32,6 +56,8 @@ function seedAdminNames(): { firstName: string; lastName: string } {
 }
 
 async function main() {
+  await seedCategories();
+
   const email = process.env.SEED_SUPERADMIN_EMAIL;
   const password = process.env.SEED_SUPERADMIN_PASSWORD;
   const { firstName, lastName } = seedAdminNames();

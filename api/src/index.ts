@@ -5,7 +5,10 @@ import helmet from "helmet";
 
 import { apiJsonBodyLimit, trustProxySetting } from "./env";
 import { apiErrorHandler, apiNotFoundHandler } from "./middleware/http-errors";
+import { requireAuth } from "./middleware/require-auth";
 import authRoutes from "./routes/auth";
+import articleRoutes from "./routes/articles";
+import catalogRoutes from "./routes/catalog";
 
 const app = express();
 
@@ -42,6 +45,8 @@ app.get("/api/health", (_req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
+app.use("/api/articles", requireAuth, articleRoutes);
+app.use("/api/catalog", requireAuth, catalogRoutes);
 
 app.use(apiNotFoundHandler);
 app.use(apiErrorHandler);

@@ -1,0 +1,89 @@
+import type {
+  Article,
+  AttributeDefinition,
+  AttributeOption,
+  AttributeValue,
+  Brand,
+  Category,
+} from "@prisma/client";
+import { Decimal } from "@prisma/client/runtime/library";
+
+import { articleImagePublicPath } from "../../lib/article-image";
+
+type ArticleWithRelations = Article & {
+  brand: Brand | null;
+  category: Category | null;
+  attributeValues: (AttributeValue & {
+    definition: AttributeDefinition;
+    option: AttributeOption | null;
+  })[];
+};
+
+function decimalToNumber(value: Decimal | null): number | null {
+  if (value === null) {
+    return null;
+  }
+  return value.toNumber();
+}
+
+export function serializeArticle(article: ArticleWithRelations) {
+  return {
+    id: article.id,
+    code: article.code,
+    name: article.name,
+    description: article.description,
+    stock: article.stock,
+    minThreshold: article.minThreshold,
+    lowStock: article.stock < article.minThreshold,
+    isActive: article.isActive,
+    barcode: article.barcode,
+    price: decimalToNumber(article.price),
+    weightGrams: article.weightGrams,
+    imageUrl: article.imageUrl
+      ? articleImagePublicPath(article.id)
+      : null,
+    brand: article.brand
+      ? { id: article.brand.id, name: article.brand.name }
+      : null,
+    category: article.category
+      ? {
+          id: article.category.id,
+          name: article.category.name,
+          slug: article.category.slug,
+        }
+      : null,
+    attributeValues: article.attributeValues.map((value) => ({
+      id: value.id,
+      definitionId: value.definitionId,
+      key: value.definition.key,
+      label: value.definition.label,
+      type: value.definition.type,
+      valueText: value.valueText,
+      valueNumber: decimalToNumber(value.valueNumber),
+      valueBoolean: value.valueBoolean,
+      option: value.option
+        ? {
+            id: value.option.id,
+            value: value.option.value,
+            label: value.option.label ?? value.option.value,
+          }
+        : null,
+    })),
+    createdAt: article.createdAt.toISOString(),
+    updatedAt: article.updatedAt.toISOString(),
+  };
+}
+
+export const articleInclude = {
+  brand: true,
+  category: true,
+  attributeValues: {
+    include: {
+      definition: true,
+      option: true,
+    },
+    orderBy: {
+      definition: { sortOrder: "asc" as const },
+    },
+  },
+} as const;
