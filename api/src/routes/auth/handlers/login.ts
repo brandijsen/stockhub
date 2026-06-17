@@ -3,6 +3,7 @@ import type { Request, Response } from "express";
 
 import { prisma } from "../../../lib/prisma";
 import { COOKIE, signSessionToken } from "../../../lib/session-token";
+import { touchUserLastSeen } from "../../../lib/user-presence";
 import { cookieOpts, displayName } from "../session";
 import { loginSchema } from "../schemas";
 
@@ -53,6 +54,8 @@ export async function loginPost(req: Request, res: Response): Promise<void> {
       });
       return;
     }
+
+    await touchUserLastSeen(user.id, true);
 
     const token = await signSessionToken({
       sub: user.id,

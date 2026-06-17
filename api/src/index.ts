@@ -9,6 +9,8 @@ import { requireAuth } from "./middleware/require-auth";
 import authRoutes from "./routes/auth";
 import articleRoutes from "./routes/articles";
 import catalogRoutes from "./routes/catalog";
+import conversationRoutes from "./routes/conversations";
+import staffRoutes from "./routes/staff";
 
 const app = express();
 
@@ -47,6 +49,8 @@ app.get("/api/health", (_req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/articles", requireAuth, articleRoutes);
 app.use("/api/catalog", requireAuth, catalogRoutes);
+app.use("/api/staff", requireAuth, staffRoutes);
+app.use("/api/conversations", requireAuth, conversationRoutes);
 
 app.use(apiNotFoundHandler);
 app.use(apiErrorHandler);

@@ -82,6 +82,20 @@ export const resendVerificationRateLimit: RequestHandler = rateLimit({
   ),
 });
 
+/** Chat messages (per authenticated user). */
+export const messageRateLimit: RequestHandler = rateLimit({
+  ...baseOptions,
+  windowMs: 60 * 1000,
+  limit: 30,
+  keyGenerator: (req) => {
+    const session = (req as { sessionUser?: { sub?: string } }).sessionUser;
+    return session?.sub ?? clientKey(req);
+  },
+  handler: rateLimitHandler(
+    "Too many messages sent. Please wait a moment before sending more.",
+  ),
+});
+
 /** Opening verification links (per IP + token prefix). */
 export const verifyEmailRateLimit: RequestHandler = rateLimit({
   ...baseOptions,

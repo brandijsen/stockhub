@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { LogoutButton } from "@/components/LogoutButton";
+import { MessagesNavLink } from "@/components/MessagesNavLink";
 
 export function Navbar() {
   return (
@@ -47,7 +48,8 @@ export function Navbar() {
               </Link>
             </li>
           </ul>
-          <div className="flex items-center border-l border-zinc-200 pl-4">
+          <div className="flex items-center gap-3 border-l border-zinc-200 pl-4">
+            <MessagesNavLink />
             <LogoutButton />
           </div>
         </div>

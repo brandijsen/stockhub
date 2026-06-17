@@ -5,6 +5,7 @@ import {
   type SessionClaims,
   verifySessionToken,
 } from "../lib/session-token";
+import { touchUserLastSeen } from "../lib/user-presence";
 
 export type AuthenticatedRequest = Request & {
   sessionUser: SessionClaims;
@@ -28,5 +29,6 @@ export async function requireAuth(
   }
 
   (req as AuthenticatedRequest).sessionUser = session;
+  void touchUserLastSeen(session.sub);
   next();
 }
