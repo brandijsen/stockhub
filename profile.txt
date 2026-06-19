@@ -1,0 +1,222 @@
+================================================================================
+PROFILE — Brainstorming pagina profilo utente StockHub
+================================================================================
+
+OBIETTIVO
+---------
+Pagina `/profile`: area personale dell’utente **loggato**, con le proprie informazioni
+generalmente utili in app (non l’elenco team — quello resta su `/staff`).
+
+Campi target (MVP):
+  • Nome e cognome (firstName + lastName) — visualizzazione + modifica
+  • Email — solo lettura (cambio email = flusso verifica, post-MVP)
+  • Ruolo applicativo (USER | ADMIN | SUPERADMIN) — solo lettura
+  • Foto profilo — upload / anteprima / rimuovi
+  • (~) Data registrazione (`createdAt`) — informativa
+
+Obiettivo UX:
+  • L’utente capisce chi è in app e può aggiornare nome e avatar senza passare da staff/admin.
+
+Dove compare il **nome** utente (decisione UI)
+-----------------------------------------------
+  • **Dashboard** — saluto “Welcome back, {name}” via `getSession()` → `/api/auth/me` (nome dal DB).
+  • **`/profile`** — header card + form (aggiornamento immediato dopo PATCH).
+  • **Navbar** — **no nome** (solo link nav, icona messaggi, icona profilo, logout).
+
+  Dopo PATCH nome: dashboard mostra il nome nuovo al prossimo visit (/me legge DB).
+  Non serve rigenerare JWT né refresh sessione dedicato (ex 1.3).
+
+Nota terminologia — Profile vs Staff
+------------------------------------
+  | Concetto        | `/profile`              | `/staff`                    |
+  |-----------------|-------------------------|-----------------------------|
+  | Scope           | Solo **utente corrente**| Tutto il team               |
+  | Ruolo           | Lettura                 | Modifica solo SUPERADMIN    |
+  | Email altrui    | No                      | Sì (lista team)             |
+  | Foto            | Propria, modificabile   | No (solo chat / lista)      |
+  | Online/Offline  | Non necessario in MVP   | Sì (presenza team)          |
+
+Non confondere:
+  • **Ruolo** = permessi (`User.role`) — in profilo badge read-only.
+  • **Profilo** ≠ **Staff** — due pagine, due scopi.
+
+STATO IMPLEMENTAZIONE
+---------------------
+  [x] GET /api/profile (dettaglio utente corrente)
+  [x] PATCH /api/profile (firstName, lastName)
+  [x] POST/DELETE /api/profile/image (foto profilo)
+  [x] PATCH /api/profile/password (cambio password)
+  [x] UI pagina /profile (modifica nome + foto + password)
+  [x] Link profilo in navbar (icona → /profile, sezione destra con messaggi e logout)
+
+CONTESTO TECNICO ATTUALE
+-------------------------
+Modello `User` (Prisma) — campi già presenti:
+  id, firstName, lastName, email, emailVerified, image String?, role, lastSeenAt,
+  createdAt, updatedAt, password?
+
+  • `GET /api/auth/me` — leggero, per sessione UI: id, email, name, role.
+    Non espone firstName/lastName separati, image, createdAt.
+  • Modifica ruolo — già su `PATCH /api/staff/:id/role` (SUPERADMIN), non in profilo.
+  • Upload immagini — pattern articoli: `api/src/lib/article-image.ts`, multer,
+    file in `uploads/articles/`, serve via route dedicata.
+    Stesso pattern riusabile per `uploads/users/` + `User.image` = storage key.
+
+Raccomandazione API:
+  • **`/api/auth/me`** — resta minimale (sessione, gate UI).
+  • **`/api/profile`** — GET/PATCH/image per pagina profilo (dettaglio + edit).
+
+COSA MOSTRARE — MVP UI
+----------------------
+Layout suggerito (card singola o due sezioni):
+
+  ┌─────────────────────────────────────────┐
+  │  [Avatar]   Mario Rossi                 │
+  │             mario@example.com           │
+  │             [Badge: Admin]              │
+  │             Member since Jan 2026       │
+  ├─────────────────────────────────────────┤
+  │  First name    [ input ]                │
+  │  Last name     [ input ]                │
+  │  Email         mario@… (read-only)      │
+  │  Role          Admin (read-only)        │
+  │  [ Save changes ]                       │
+  ├─────────────────────────────────────────┤
+  │  Profile photo                          │
+  │  [ Choose file ] [ Remove ]             │
+  └─────────────────────────────────────────┘
+
+  • Avatar: foto se presente, altrimenti iniziali (MR) su sfondo neutro.
+  • Save nome: feedback success/error; header profilo si aggiorna subito; dashboard al prossimo load.
+  • Ruolo: riusare `staffRoleLabel` / badge colori da staff.
+
+API — bozza
+-----------
+
+GET /api/profile
+  Auth: requireAuth
+  Response: {
+    user: {
+      id, firstName, lastName, name, email, role,
+      imageUrl,          // null se nessuna foto — URL pubblico API
+      createdAt,         // ISO
+      emailVerified      // ISO (informativo)
+    }
+  }
+
+PATCH /api/profile
+  Auth: requireAuth (solo proprio utente — sempre session.sub)
+  Body: { firstName: string, lastName: string }
+  Validazione Zod: trim, min 1, max ragionevole (es. 80)
+  Response: { user: { ... come GET } }
+  Nota: JWT cookie non va rigenerato — `/api/auth/me` legge firstName/lastName dal DB;
+        dashboard e gate ruolo restano corretti al prossimo load pagina.
+
+POST /api/profile/image
+  Auth: requireAuth
+  multipart/form-data, campo `image` (jpeg/png/webp, max 5 MB — allineato ad articoli)
+  Salva in uploads/users/{userId}.{ext}, storage key in User.image
+  Response: { user: { ..., imageUrl } }
+
+DELETE /api/profile/image
+  Auth: requireAuth
+  Rimuove file + User.image = null
+
+PATCH /api/profile/password
+  Auth: requireAuth
+  Body: { currentPassword, newPassword, confirmNewPassword }
+  Validazione: min 8 caratteri nuova password; confirm deve coincidere;
+               password attuale corretta; nuova diversa dalla attuale
+  Response: { ok: true }
+
+GET /api/profile/image  (o GET /api/users/:id/image — preferenza: /api/profile/image)
+  Auth: requireAuth (solo propria immagine in MVP)
+  Serve file con Content-Type corretto
+
+Non esporre: password hash, token, lastSeenAt (opzionale in futuro).
+
+Foto profilo — scelta tecnica
+-----------------------------
+  • Campo DB: `User.image` = storage key relativo (es. `users/clxyz.webp`).
+  • Cartella: `uploads/users/` (parallel a `uploads/articles/`).
+  • Helper: `api/src/lib/user-image.ts` (clone leggero di article-image).
+  • Middleware upload: riusare pattern `article-upload.ts` → `profile-upload.ts`.
+  • URL client: `/api/profile/image` (rewrite Next → Express).
+
+Permessi
+--------
+  • Chi accede: qualsiasi utente **loggato** vede/modifica **solo il proprio** profilo.
+  • SUPERADMIN non modifica ruolo da qui — resta su `/staff`.
+  • Nessun accesso a profilo altrui via API profile (no :id in route MVP).
+
+UI — bozza componenti
+-----------------------
+  web/app/(main)/profile/page.tsx
+  web/components/profile/
+    ProfileView.tsx           — shell pagina
+    ProfileAvatar.tsx         — immagine o iniziali
+    ProfileForm.tsx           — firstName, lastName, email/role read-only, Save
+    ProfileImageSection.tsx   — upload + remove
+    ProfilePasswordSection.tsx — cambio password
+    useProfile.ts             — fetch GET, PATCH, upload
+
+  web/lib/profile.ts          — tipi + chiamate API
+
+  web/components/Navbar.tsx
+    ProfileNavLink.tsx          — **solo icona** utente → /profile (no testo nome)
+    (sezione destra con MessagesNavLink e Logout, border-l — come messaggi)
+
+================================================================================
+SCALETTA IMPLEMENTAZIONE — cosa fare, in ordine
+================================================================================
+
+Legenda: [x] fatto   [ ] da fare   (~) opzionale / post-MVP
+
+--- FASE 0 — Lettura profilo ---
+  [x] 0.1  Route API GET /api/profile + serialize (firstName, lastName, role, imageUrl, createdAt)
+  [x] 0.2  web/lib/profile.ts — tipi + fetchProfile()
+  [x] 0.3  Pagina /profile — visualizzazione read-only (card info + badge ruolo)
+  [x] 0.4  useProfile hook — load + stati loading/error
+
+--- FASE 1 — Modifica nome ---
+  [x] 1.1  PATCH /api/profile — Zod firstName/lastName
+  [x] 1.2  ProfileForm — input + Save + messaggi errore/successo
+  [x] 1.3  Refresh sessione post-save — **non necessario** (nome in navbar escluso; dashboard usa /me)
+
+--- FASE 2 — Foto profilo ---
+  [x] 2.1  api/src/lib/user-image.ts — save/delete/serve (pattern articoli)
+  [x] 2.2  middleware profile-upload.ts (mime + size)
+  [x] 2.3  POST /api/profile/image + DELETE + GET serve
+  [x] 2.4  ProfileAvatar + ProfileImageSection — upload, preview, remove
+  [x] 2.5  Placeholder iniziali quando imageUrl assente
+
+--- FASE 3 — Navigazione ---
+  [x] 3.1  ProfileNavLink in navbar (solo icona utente → /profile; sezione destra con messaggi/logout)
+  [x] 3.2  Nome / mini-avatar in navbar — **non previsto** (nome solo su dashboard + /profile)
+
+--- FASE 4 — Post-MVP (backlog) ---
+  [x] 4.1  Cambio password (vecchia + nuova + confirm)
+  [ ] 4.2  Cambio email con verifica (PendingEmailChange?)
+  [ ] 4.3  Preferenze utente (lingua, notifiche)
+  [ ] 4.4  Mostrare lastSeenAt / “Last active” nel profilo
+  [ ] 4.5  OAuth avatar import se login social in futuro
+
+ORDINE DI LAVORO (riferimento rapido)
+--------------------------------------
+  Fase 0 → pagina profilo read-only
+  Fase 1 → modifica nome
+  Fase 2 → foto
+  Fase 3 → link navbar
+
+Prossimo step consigliato: **4.2** cambio email con verifica, o polish staff (badge messaggi non letti).
+
+DOMANDE APERTE
+--------------
+  [x] Nome in navbar? → **no**; saluto solo in dashboard (+ header /profile)
+  [x] Nome dopo PATCH? → dashboard OK al prossimo visit via /me; JWT refresh non serve
+  • GET /api/profile/image pubblico con auth cookie vs signed URL? → auth cookie (MVP).
+  • Validazione nome: consentire unicode / apostrofi (O’Brien)? → sì, trim + min length.
+
+DOCUMENTO VIVO
+---------------
+Aggiornare quando si implementa una slice o si cambiano campi editabili / permessi.
