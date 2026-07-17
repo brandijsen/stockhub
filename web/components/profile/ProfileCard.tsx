@@ -11,6 +11,7 @@ import {
 import { ProfileAvatar } from "./ProfileAvatar";
 import { ProfileForm } from "./ProfileForm";
 import { ProfileImageSection } from "./ProfileImageSection";
+import { ProfileLogoutSection } from "./ProfileLogoutSection";
 import { ProfilePasswordSection } from "./ProfilePasswordSection";
 
 function roleBadgeClass(role: string): string {
@@ -71,6 +72,7 @@ export function ProfileCard({ user, onUpdated }: ProfileCardProps) {
         imageCacheKey={imageCacheKey}
       />
       <ProfilePasswordSection />
+      <ProfileLogoutSection />
     </div>
   );
 }

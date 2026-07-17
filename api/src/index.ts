@@ -12,6 +12,7 @@ import catalogRoutes from "./routes/catalog";
 import conversationRoutes from "./routes/conversations";
 import profileRoutes from "./routes/profile";
 import staffRoutes from "./routes/staff";
+import supplierRoutes from "./routes/suppliers";
 
 const app = express();
 
@@ -51,6 +52,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/articles", requireAuth, articleRoutes);
 app.use("/api/catalog", requireAuth, catalogRoutes);
 app.use("/api/staff", requireAuth, staffRoutes);
+app.use("/api/suppliers", requireAuth, supplierRoutes);
 app.use("/api/profile", requireAuth, profileRoutes);
 app.use("/api/conversations", requireAuth, conversationRoutes);
 

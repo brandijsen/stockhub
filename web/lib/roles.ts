@@ -7,3 +7,8 @@ export function canManageArticles(role: string | undefined | null): boolean {
 export function canManageStaffRoles(role: string | undefined | null): boolean {
   return role === "SUPERADMIN";
 }
+
+/** Roles that can create and edit suppliers. */
+export function canManageSuppliers(role: string | undefined | null): boolean {
+  return role === "ADMIN" || role === "SUPERADMIN";
+}
