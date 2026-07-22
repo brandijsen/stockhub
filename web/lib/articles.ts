@@ -1,3 +1,5 @@
+import { api } from "@/lib/api-client";
+
 export type CatalogBrand = { id: string; name: string };
 
 export const ARTICLES_PAGE_SIZE = 20;
@@ -164,4 +166,19 @@ export function formatArticleDate(iso: string): string {
     dateStyle: "medium",
     timeStyle: "short",
   });
+}
+
+export async function fetchArticles(params: {
+  page?: number;
+  limit?: number;
+  active?: boolean;
+}): Promise<ArticlesListResponse> {
+  const { data } = await api.get<ArticlesListResponse>("/api/articles", {
+    params: {
+      page: params.page ?? 1,
+      limit: params.limit ?? ARTICLES_PAGE_SIZE,
+      ...(params.active ? { active: "true" } : {}),
+    },
+  });
+  return data;
 }

@@ -10,8 +10,10 @@ import authRoutes from "./routes/auth";
 import articleRoutes from "./routes/articles";
 import catalogRoutes from "./routes/catalog";
 import conversationRoutes from "./routes/conversations";
+import notificationRoutes from "./routes/notifications";
 import profileRoutes from "./routes/profile";
 import staffRoutes from "./routes/staff";
+import supplierOrderRoutes from "./routes/supplier-orders";
 import supplierRoutes from "./routes/suppliers";
 
 const app = express();
@@ -53,7 +55,9 @@ app.use("/api/articles", requireAuth, articleRoutes);
 app.use("/api/catalog", requireAuth, catalogRoutes);
 app.use("/api/staff", requireAuth, staffRoutes);
 app.use("/api/suppliers", requireAuth, supplierRoutes);
+app.use("/api/supplier-orders", requireAuth, supplierOrderRoutes);
 app.use("/api/profile", requireAuth, profileRoutes);
+app.use("/api/notifications", requireAuth, notificationRoutes);
 app.use("/api/conversations", requireAuth, conversationRoutes);
 
 app.use(apiNotFoundHandler);

@@ -74,9 +74,11 @@ function verificationEmailText(verifyUrl: string): string {
   return `Open this link to verify your email (link valid for ${ttl}): ${verifyUrl}\n\nIf you did not sign up for StockHub, ignore this message.`;
 }
 
-async function sendViaBrevo(
+async function sendViaBrevoMessage(
   to: string,
-  verifyUrl: string,
+  subject: string,
+  html: string,
+  text: string,
   sender: { name?: string; email: string },
 ): Promise<{ ok: true } | { ok: false; message: string }> {
   const key = brevoApiKey();
@@ -95,9 +97,9 @@ async function sendViaBrevo(
         email: sender.email,
       },
       to: [{ email: to }],
-      subject: "Verify your StockHub email",
-      htmlContent: verificationEmailHtml(verifyUrl),
-      textContent: verificationEmailText(verifyUrl),
+      subject,
+      htmlContent: html,
+      textContent: text,
     }),
   });
 
@@ -114,9 +116,11 @@ async function sendViaBrevo(
   return { ok: true };
 }
 
-async function sendViaResend(
+async function sendViaResendMessage(
   to: string,
-  verifyUrl: string,
+  subject: string,
+  html: string,
+  text: string,
   sender: { name?: string; email: string },
 ): Promise<{ ok: true } | { ok: false; message: string }> {
   const key = resendApiKey();
@@ -130,15 +134,76 @@ async function sendViaResend(
   const { error } = await resend.emails.send({
     from: fromDisplay,
     to: [to],
-    subject: "Verify your StockHub email",
-    html: verificationEmailHtml(verifyUrl),
-    text: verificationEmailText(verifyUrl),
+    subject,
+    html,
+    text,
   });
 
   if (error) {
     return { ok: false, message: error.message };
   }
   return { ok: true };
+}
+
+export async function sendTransactionalEmail(params: {
+  to: string;
+  subject: string;
+  html: string;
+  text: string;
+}): Promise<{ ok: true } | { ok: false; message: string }> {
+  const sender = parseEmailFrom();
+  if (!sender) {
+    return { ok: false, message: "EMAIL_FROM missing or invalid" };
+  }
+
+  const mode = mailProvider();
+  if (mode === "brevo" || (mode === "auto" && brevoApiKey())) {
+    return sendViaBrevoMessage(
+      params.to,
+      params.subject,
+      params.html,
+      params.text,
+      sender,
+    );
+  }
+  if (mode === "resend" || (mode === "auto" && resendApiKey())) {
+    return sendViaResendMessage(
+      params.to,
+      params.subject,
+      params.html,
+      params.text,
+      sender,
+    );
+  }
+  return { ok: false, message: "No mail API key for selected MAIL_PROVIDER" };
+}
+
+async function sendViaBrevo(
+  to: string,
+  verifyUrl: string,
+  sender: { name?: string; email: string },
+): Promise<{ ok: true } | { ok: false; message: string }> {
+  return sendViaBrevoMessage(
+    to,
+    "Verify your StockHub email",
+    verificationEmailHtml(verifyUrl),
+    verificationEmailText(verifyUrl),
+    sender,
+  );
+}
+
+async function sendViaResend(
+  to: string,
+  verifyUrl: string,
+  sender: { name?: string; email: string },
+): Promise<{ ok: true } | { ok: false; message: string }> {
+  return sendViaResendMessage(
+    to,
+    "Verify your StockHub email",
+    verificationEmailHtml(verifyUrl),
+    verificationEmailText(verifyUrl),
+    sender,
+  );
 }
 
 /**

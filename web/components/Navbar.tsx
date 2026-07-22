@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { MessagesNavLink } from "@/components/MessagesNavLink";
+import { NotificationsNavLink } from "@/components/NotificationsNavLink";
 import { ProfileNavLink } from "@/components/ProfileNavLink";
 
 export function Navbar() {
@@ -50,6 +51,7 @@ export function Navbar() {
           </ul>
           <div className="flex items-center gap-3 border-l border-zinc-200 pl-4">
             <ProfileNavLink />
+            <NotificationsNavLink />
             <MessagesNavLink />
           </div>
         </div>
