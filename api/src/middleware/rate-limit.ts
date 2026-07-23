@@ -1,9 +1,21 @@
 import type { Request, RequestHandler } from "express";
 import rateLimit, { type Options } from "express-rate-limit";
 
-const skipRateLimit = (): boolean =>
-  process.env.RATE_LIMIT_DISABLED === "1" ||
-  process.env.NODE_ENV === "test";
+const skipRateLimit = (): boolean => {
+  if (process.env.NODE_ENV === "test") {
+    return true;
+  }
+  if (
+    process.env.NODE_ENV === "production" &&
+    process.env.RATE_LIMIT_DISABLED === "1"
+  ) {
+    console.warn(
+      "RATE_LIMIT_DISABLED is ignored in production; rate limits remain active.",
+    );
+    return false;
+  }
+  return process.env.RATE_LIMIT_DISABLED === "1";
+};
 
 function clientKey(req: Request): string {
   return req.ip ?? req.socket.remoteAddress ?? "unknown";

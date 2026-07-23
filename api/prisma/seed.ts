@@ -69,9 +69,19 @@ async function main() {
   }
 
   const passwordHash = await bcrypt.hash(password, 12);
+  const normalizedEmail = email.trim().toLowerCase();
+
+  // Business rule: at most one SUPERADMIN — demote others when seeding the canonical account.
+  await prisma.user.updateMany({
+    where: {
+      role: UserRole.SUPERADMIN,
+      email: { not: normalizedEmail },
+    },
+    data: { role: UserRole.ADMIN },
+  });
 
   await prisma.user.upsert({
-    where: { email: email.trim().toLowerCase() },
+    where: { email: normalizedEmail },
     update: {
       firstName,
       lastName,
@@ -80,7 +90,7 @@ async function main() {
       emailVerified: new Date(),
     },
     create: {
-      email: email.trim().toLowerCase(),
+      email: normalizedEmail,
       firstName,
       lastName,
       role: UserRole.SUPERADMIN,
@@ -89,7 +99,7 @@ async function main() {
     },
   });
 
-  console.log(`Super admin ready: ${email.trim().toLowerCase()}`);
+  console.log(`Super admin ready: ${normalizedEmail}`);
 }
 
 main()

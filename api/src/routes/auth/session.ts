@@ -26,6 +26,16 @@ export function cookieOpts() {
   };
 }
 
+/** Match `cookieOpts` attributes so the browser clears the session cookie in production. */
+export function cookieClearOpts() {
+  const prod = process.env.NODE_ENV === "production";
+  return {
+    path: "/",
+    secure: prod,
+    sameSite: "lax" as const,
+  };
+}
+
 export async function setSessionCookieAndRedirectDashboard(
   res: Response,
   user: {

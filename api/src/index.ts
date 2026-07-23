@@ -15,6 +15,8 @@ import profileRoutes from "./routes/profile";
 import staffRoutes from "./routes/staff";
 import supplierOrderRoutes from "./routes/supplier-orders";
 import supplierRoutes from "./routes/suppliers";
+import customerRoutes from "./routes/customers";
+import customerOrderRoutes from "./routes/customer-orders";
 
 const app = express();
 
@@ -55,6 +57,8 @@ app.use("/api/articles", requireAuth, articleRoutes);
 app.use("/api/catalog", requireAuth, catalogRoutes);
 app.use("/api/staff", requireAuth, staffRoutes);
 app.use("/api/suppliers", requireAuth, supplierRoutes);
+app.use("/api/customers", requireAuth, customerRoutes);
+app.use("/api/customer-orders", requireAuth, customerOrderRoutes);
 app.use("/api/supplier-orders", requireAuth, supplierOrderRoutes);
 app.use("/api/profile", requireAuth, profileRoutes);
 app.use("/api/notifications", requireAuth, notificationRoutes);
