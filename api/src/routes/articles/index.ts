@@ -5,6 +5,7 @@ import { articleImportUpload } from "../../middleware/article-import-upload";
 import { requireAdmin } from "../../middleware/require-admin";
 import { createArticle } from "./handlers/create";
 import { deleteArticle } from "./handlers/delete";
+import { adjustArticleStock } from "./handlers/adjust-stock";
 import { exportArticles } from "./handlers/export";
 import { getArticle } from "./handlers/get-one";
 import {
@@ -57,6 +58,7 @@ router.post("/", requireAdmin, createArticle);
 router.get("/:id/image", getArticleImage);
 router.post("/:id/image", requireAdmin, handleImageUpload, uploadArticleImage);
 router.delete("/:id/image", requireAdmin, deleteArticleImage);
+router.post("/:id/adjust-stock", adjustArticleStock);
 router.get("/:id", getArticle);
 router.patch("/:id", requireAdmin, updateArticle);
 router.delete("/:id", requireAdmin, deleteArticle);

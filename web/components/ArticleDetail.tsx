@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { Spinner } from "@/components/Spinner";
+import { ArticleStockAdjustSection } from "@/components/articles/ArticleStockAdjustSection";
 import {
   type Article,
   articleAttributesForDisplay,
@@ -231,6 +232,14 @@ export function ArticleDetail({ articleId, canManage }: ArticleDetailProps) {
           </DetailRow>
         </dl>
       </div>
+
+      <ArticleStockAdjustSection
+        article={article}
+        onAdjusted={(updated) => {
+          setArticle(updated);
+          setImageFailed(false);
+        }}
+      />
     </div>
   );
 }

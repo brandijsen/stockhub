@@ -57,6 +57,16 @@ export const exportArticlesQuerySchema = listArticlesQuerySchema.omit({
   limit: true,
 });
 
+export const adjustStockSchema = z
+  .object({
+    delta: z
+      .number()
+      .int()
+      .refine((value) => value !== 0, { message: "Delta must not be zero" }),
+    note: z.string().trim().max(5000).optional().nullable(),
+  })
+  .strict();
+
 export const ARTICLES_EXPORT_MAX_ROWS = 5000;
 export const ARTICLES_IMPORT_MAX_ROWS = 1000;
 export type CustomAttributeInput = z.infer<typeof customAttributeSchema>;

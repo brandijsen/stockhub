@@ -182,3 +182,14 @@ export async function fetchArticles(params: {
   });
   return data;
 }
+
+export async function adjustArticleStock(
+  articleId: string,
+  payload: { delta: number; note?: string | null },
+): Promise<Article> {
+  const { data } = await api.post<{ article: Article }>(
+    `/api/articles/${articleId}/adjust-stock`,
+    payload,
+  );
+  return data.article;
+}
