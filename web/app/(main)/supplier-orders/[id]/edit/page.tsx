@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 
 import { SupplierOrderEditView } from "@/components/SupplierOrderEditView";
-import { canManageSuppliers } from "@/lib/roles";
+import { canManageSupplierOrders } from "@/lib/roles";
 import { getSession } from "@/lib/session";
 
 type EditSupplierOrderPageProps = {
@@ -12,7 +12,7 @@ export default async function EditSupplierOrderPage({
   params,
 }: EditSupplierOrderPageProps) {
   const user = await getSession();
-  if (!canManageSuppliers(user?.role)) {
+  if (!canManageSupplierOrders(user?.role)) {
     redirect("/supplier-orders");
   }
 

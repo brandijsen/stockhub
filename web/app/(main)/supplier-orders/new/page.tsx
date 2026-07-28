@@ -1,12 +1,12 @@
 import { redirect } from "next/navigation";
 
 import { SupplierOrderForm } from "@/components/SupplierOrderForm";
-import { canManageSuppliers } from "@/lib/roles";
+import { canManageSupplierOrders } from "@/lib/roles";
 import { getSession } from "@/lib/session";
 
 export default async function NewSupplierOrderPage() {
   const user = await getSession();
-  if (!canManageSuppliers(user?.role)) {
+  if (!canManageSupplierOrders(user?.role)) {
     redirect("/supplier-orders");
   }
 

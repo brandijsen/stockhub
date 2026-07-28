@@ -1,5 +1,5 @@
 import { SupplierOrderDetail } from "@/components/SupplierOrderDetail";
-import { canManageSuppliers } from "@/lib/roles";
+import { canManageSupplierOrders } from "@/lib/roles";
 import { getSession } from "@/lib/session";
 
 type SupplierOrderDetailPageProps = {
@@ -11,7 +11,7 @@ export default async function SupplierOrderDetailPage({
 }: SupplierOrderDetailPageProps) {
   const { id } = await params;
   const user = await getSession();
-  const canManage = canManageSuppliers(user?.role);
+  const canManage = canManageSupplierOrders(user?.role);
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">

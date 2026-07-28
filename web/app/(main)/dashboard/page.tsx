@@ -1,14 +1,10 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 
 import { LogoutButton } from "@/components/LogoutButton";
 import { getSession } from "@/lib/session";
 
 export default async function DashboardPage() {
-  const user = await getSession();
-  if (!user) {
-    redirect("/login");
-  }
+  const user = (await getSession())!;
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8">

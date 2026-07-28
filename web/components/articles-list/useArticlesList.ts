@@ -1,5 +1,5 @@
 import type { ChangeEvent, FormEvent } from "react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import {
   downloadArticlesExport,
@@ -37,13 +37,16 @@ export function useArticlesList() {
   const [importSummary, setImportSummary] = useState<string | null>(null);
   const importInputRef = useRef<HTMLInputElement>(null);
 
-  const filters: ArticleListFilters = {
-    q: appliedQuery,
-    categoryId,
-    brandId,
-    activeOnly,
-    lowStockOnly,
-  };
+  const filters: ArticleListFilters = useMemo(
+    () => ({
+      q: appliedQuery,
+      categoryId,
+      brandId,
+      activeOnly,
+      lowStockOnly,
+    }),
+    [activeOnly, appliedQuery, brandId, categoryId, lowStockOnly],
+  );
 
   const hasFilters =
     appliedQuery !== "" ||
@@ -111,7 +114,7 @@ export function useArticlesList() {
 
   useEffect(() => {
     void loadArticles(page, filters);
-  }, [activeOnly, appliedQuery, brandId, categoryId, loadArticles, lowStockOnly, page]);
+  }, [filters, loadArticles, page]);
 
   function resetPage() {
     setPage((current) => (current === 1 ? current : 1));

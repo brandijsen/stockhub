@@ -218,9 +218,8 @@ export function useArticleForm({ mode, articleId }: UseArticleFormOptions) {
           "/api/articles",
           payload,
         );
-        let article = data.article;
         if (imageFile) {
-          article = await uploadArticleImageFile(article.id, imageFile);
+          await uploadArticleImageFile(data.article.id, imageFile);
         }
         setSuccess("Article created.");
         setValues(emptyArticleForm());
