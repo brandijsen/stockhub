@@ -101,6 +101,8 @@ cd web && npm run build && npm start
 
 Set `NODE_ENV=production` and the same `.env` keys your host expects; ensure `FRONTEND_URL` and `API_URL` match your deployed origins when using rewrites.
 
+See **[DEPLOY.md](DEPLOY.md)** for migrations, production env vars, deploy order, and smoke tests.
+
 ## License
 
 See [`LICENSE`](LICENSE) in this repository.

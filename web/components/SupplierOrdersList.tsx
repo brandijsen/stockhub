@@ -1,9 +1,15 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 
 import { Spinner } from "@/components/Spinner";
+import { ListFilterBanner } from "@/components/ListFilterBanner";
 import { ArticlesListPagination } from "@/components/articles-list/ArticlesListPagination";
+import {
+  parseSupplierOrderStatusParam,
+  supplierOrderStatusLabel,
+} from "@/lib/supplier-orders";
 
 import { SupplierOrdersListTable } from "./supplier-orders-list/SupplierOrdersListTable";
 import { useSupplierOrdersList } from "./supplier-orders-list/useSupplierOrdersList";
@@ -13,7 +19,9 @@ type SupplierOrdersListProps = {
 };
 
 export function SupplierOrdersList({ canManage }: SupplierOrdersListProps) {
-  const list = useSupplierOrdersList();
+  const searchParams = useSearchParams();
+  const statusFilter = parseSupplierOrderStatusParam(searchParams.get("status"));
+  const list = useSupplierOrdersList({ status: statusFilter });
 
   return (
     <div>
@@ -38,6 +46,13 @@ export function SupplierOrdersList({ canManage }: SupplierOrdersListProps) {
         ) : null}
       </div>
 
+      {statusFilter ? (
+        <ListFilterBanner
+          label={`Status: ${supplierOrderStatusLabel(statusFilter)}`}
+          clearHref="/supplier-orders"
+        />
+      ) : null}
+
       {list.error ? (
         <p className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
           {list.error}
@@ -51,8 +66,10 @@ export function SupplierOrdersList({ canManage }: SupplierOrdersListProps) {
         </div>
       ) : list.total === 0 ? (
         <p className="mt-8 text-zinc-600">
-          No supplier orders yet.
-          {canManage ? " Create the first purchase order." : null}
+          {statusFilter
+            ? "No supplier orders match this filter."
+            : "No supplier orders yet."}
+          {!statusFilter && canManage ? " Create the first purchase order." : null}
         </p>
       ) : (
         <>

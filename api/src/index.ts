@@ -17,6 +17,7 @@ import supplierOrderRoutes from "./routes/supplier-orders";
 import supplierRoutes from "./routes/suppliers";
 import customerRoutes from "./routes/customers";
 import customerOrderRoutes from "./routes/customer-orders";
+import dashboardRoutes from "./routes/dashboard";
 
 const app = express();
 
@@ -59,6 +60,7 @@ app.use("/api/staff", requireAuth, staffRoutes);
 app.use("/api/suppliers", requireAuth, supplierRoutes);
 app.use("/api/customers", requireAuth, customerRoutes);
 app.use("/api/customer-orders", requireAuth, customerOrderRoutes);
+app.use("/api/dashboard", requireAuth, dashboardRoutes);
 app.use("/api/supplier-orders", requireAuth, supplierOrderRoutes);
 app.use("/api/profile", requireAuth, profileRoutes);
 app.use("/api/notifications", requireAuth, notificationRoutes);

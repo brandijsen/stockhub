@@ -136,12 +136,38 @@ export function formatSupplierOrderDate(iso: string): string {
 
 export async function fetchSupplierOrders(
   page = 1,
+  status?: SupplierOrderStatus,
 ): Promise<SupplierOrdersListResponse> {
   const { data } = await api.get<SupplierOrdersListResponse>(
     "/api/supplier-orders",
-    { params: { page, limit: SUPPLIER_ORDERS_PAGE_SIZE } },
+    {
+      params: {
+        page,
+        limit: SUPPLIER_ORDERS_PAGE_SIZE,
+        ...(status ? { status } : {}),
+      },
+    },
   );
   return data;
+}
+
+const SUPPLIER_ORDER_STATUSES: SupplierOrderStatus[] = [
+  "PENDING",
+  "ARRIVED_CHECKING",
+  "CHECKED",
+  "SUCCEEDED",
+  "DONE",
+];
+
+export function parseSupplierOrderStatusParam(
+  value: string | null,
+): SupplierOrderStatus | undefined {
+  if (!value) {
+    return undefined;
+  }
+  return SUPPLIER_ORDER_STATUSES.includes(value as SupplierOrderStatus)
+    ? (value as SupplierOrderStatus)
+    : undefined;
 }
 
 export async function fetchSupplierOrder(id: string): Promise<SupplierOrder> {

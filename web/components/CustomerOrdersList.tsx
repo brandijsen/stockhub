@@ -1,9 +1,15 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 
 import { ArticlesListPagination } from "@/components/articles-list/ArticlesListPagination";
+import { ListFilterBanner } from "@/components/ListFilterBanner";
 import { Spinner } from "@/components/Spinner";
+import {
+  customerOrderStatusLabel,
+  parseCustomerOrderStatusParam,
+} from "@/lib/customer-orders";
 
 import { CustomerOrdersListTable } from "./customer-orders-list/CustomerOrdersListTable";
 import { useCustomerOrdersList } from "./customer-orders-list/useCustomerOrdersList";
@@ -13,8 +19,10 @@ type CustomerOrdersListProps = {
 };
 
 export function CustomerOrdersList({ canManage }: CustomerOrdersListProps) {
+  const searchParams = useSearchParams();
+  const statusFilter = parseCustomerOrderStatusParam(searchParams.get("status"));
   const { orders, page, totalPages, total, loading, error, rangeStart, rangeEnd, setPage } =
-    useCustomerOrdersList();
+    useCustomerOrdersList({ status: statusFilter });
 
   return (
     <div>
@@ -38,6 +46,13 @@ export function CustomerOrdersList({ canManage }: CustomerOrdersListProps) {
         ) : null}
       </div>
 
+      {statusFilter ? (
+        <ListFilterBanner
+          label={`Status: ${customerOrderStatusLabel(statusFilter)}`}
+          clearHref="/customer-orders"
+        />
+      ) : null}
+
       {error ? (
         <p className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
           {error}
@@ -51,8 +66,10 @@ export function CustomerOrdersList({ canManage }: CustomerOrdersListProps) {
         </div>
       ) : orders.length === 0 ? (
         <p className="mt-8 text-zinc-600">
-          No customer orders yet.
-          {canManage ? " Create the first order to get started." : null}
+          {statusFilter
+            ? "No customer orders match this filter."
+            : "No customer orders yet."}
+          {!statusFilter && canManage ? " Create the first order to get started." : null}
         </p>
       ) : (
         <>

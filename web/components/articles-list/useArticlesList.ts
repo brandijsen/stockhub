@@ -16,7 +16,12 @@ import { api, apiErrorMessage } from "@/lib/api-client";
 
 import type { ArticleListFilters } from "./types";
 
-export function useArticlesList() {
+type UseArticlesListOptions = {
+  initialLowStockOnly?: boolean;
+  initialActiveOnly?: boolean;
+};
+
+export function useArticlesList(options: UseArticlesListOptions = {}) {
   const [articles, setArticles] = useState<Article[]>([]);
   const [categories, setCategories] = useState<CatalogCategory[]>([]);
   const [brands, setBrands] = useState<CatalogBrand[]>([]);
@@ -24,8 +29,12 @@ export function useArticlesList() {
   const [appliedQuery, setAppliedQuery] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [brandId, setBrandId] = useState("");
-  const [activeOnly, setActiveOnly] = useState(false);
-  const [lowStockOnly, setLowStockOnly] = useState(false);
+  const [activeOnly, setActiveOnly] = useState(
+    options.initialActiveOnly ?? false,
+  );
+  const [lowStockOnly, setLowStockOnly] = useState(
+    options.initialLowStockOnly ?? false,
+  );
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(0);

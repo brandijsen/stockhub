@@ -106,3 +106,16 @@ export function customerOrderStatusLabel(status: CustomerOrder["status"]): strin
       return status;
   }
 }
+
+const CUSTOMER_ORDER_STATUSES: CustomerOrder["status"][] = ["OPEN", "PICKED_UP"];
+
+export function parseCustomerOrderStatusParam(
+  value: string | null,
+): CustomerOrder["status"] | undefined {
+  if (!value) {
+    return undefined;
+  }
+  return CUSTOMER_ORDER_STATUSES.includes(value as CustomerOrder["status"])
+    ? (value as CustomerOrder["status"])
+    : undefined;
+}

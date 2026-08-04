@@ -1,6 +1,9 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
+
 import { Spinner } from "@/components/Spinner";
+import { ListFilterBanner } from "@/components/ListFilterBanner";
 
 import { ArticlesListFilters } from "./articles-list/ArticlesListFilters";
 import { ArticlesListHeader } from "./articles-list/ArticlesListHeader";
@@ -13,7 +16,10 @@ type ArticlesListProps = {
 };
 
 export function ArticlesList({ canManage }: ArticlesListProps) {
-  const list = useArticlesList();
+  const searchParams = useSearchParams();
+  const initialLowStockOnly = searchParams.get("lowStock") === "true";
+  const initialActiveOnly = searchParams.get("active") === "true";
+  const list = useArticlesList({ initialLowStockOnly, initialActiveOnly });
 
   return (
     <div>
@@ -43,6 +49,19 @@ export function ArticlesList({ canManage }: ArticlesListProps) {
         onLowStockOnlyChange={list.handleLowStockOnlyChange}
         onClearFilters={list.clearFilters}
       />
+
+      {initialLowStockOnly || initialActiveOnly ? (
+        <ListFilterBanner
+          label={
+            initialLowStockOnly && initialActiveOnly
+              ? "Active low stock articles only"
+              : initialLowStockOnly
+                ? "Low stock articles only"
+                : "Active articles only"
+          }
+          clearHref="/articles"
+        />
+      ) : null}
 
       {list.importSummary ? (
         <p className="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
