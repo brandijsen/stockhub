@@ -49,7 +49,7 @@ function formatCheckedLinesHtml(lines: CheckedLineForEmail[]): string {
 export async function sendSupplierOrderCreatedEmail(params: {
   supplierEmail: string;
   supplierName: string;
-  orderId: string;
+  orderCode: string;
   lines: OrderLineForEmail[];
 }): Promise<{ ok: true } | { ok: false; message: string }> {
   const subject = "StockHub — new purchase order";
@@ -58,7 +58,7 @@ export async function sendSupplierOrderCreatedEmail(params: {
 
   const text = `Dear ${params.supplierName},
 
-We are placing a new purchase order (reference ${params.orderId}).
+We are placing a new purchase order (reference ${params.orderCode}).
 
 Ordered items:
 ${linesText}
@@ -73,7 +73,7 @@ StockHub`;
   <head><meta charset="utf-8" /></head>
   <body style="font-family:system-ui,sans-serif;line-height:1.5;color:#18181b;">
     <p>Dear ${params.supplierName},</p>
-    <p>We are placing a new purchase order (reference <strong>${params.orderId}</strong>).</p>
+    <p>We are placing a new purchase order (reference <strong>${params.orderCode}</strong>).</p>
     <p><strong>Ordered items:</strong></p>
     ${linesHtml}
     <p>The goods are not yet marked as received in our system. We will contact you if anything changes.</p>
@@ -92,7 +92,7 @@ StockHub`;
 export async function sendSupplierOrderUpdatedEmail(params: {
   supplierEmail: string;
   supplierName: string;
-  orderId: string;
+  orderCode: string;
   lines: OrderLineForEmail[];
 }): Promise<{ ok: true } | { ok: false; message: string }> {
   const subject = "StockHub — purchase order updated";
@@ -101,7 +101,7 @@ export async function sendSupplierOrderUpdatedEmail(params: {
 
   const text = `Dear ${params.supplierName},
 
-Our purchase order (reference ${params.orderId}) has been updated.
+Our purchase order (reference ${params.orderCode}) has been updated.
 
 Revised items:
 ${linesText}
@@ -116,7 +116,7 @@ StockHub`;
   <head><meta charset="utf-8" /></head>
   <body style="font-family:system-ui,sans-serif;line-height:1.5;color:#18181b;">
     <p>Dear ${params.supplierName},</p>
-    <p>Our purchase order (reference <strong>${params.orderId}</strong>) has been updated.</p>
+    <p>Our purchase order (reference <strong>${params.orderCode}</strong>) has been updated.</p>
     <p><strong>Revised items:</strong></p>
     ${linesHtml}
     <p>Please use these quantities as the current request. We will contact you if anything else changes.</p>
@@ -135,7 +135,7 @@ StockHub`;
 export async function sendSupplierOrderCancelledEmail(params: {
   supplierEmail: string;
   supplierName: string;
-  orderId: string;
+  orderCode: string;
   lines: OrderLineForEmail[];
 }): Promise<{ ok: true } | { ok: false; message: string }> {
   const subject = "StockHub — purchase order cancelled";
@@ -144,7 +144,7 @@ export async function sendSupplierOrderCancelledEmail(params: {
 
   const text = `Dear ${params.supplierName},
 
-We are cancelling purchase order ${params.orderId}.
+We are cancelling purchase order ${params.orderCode}.
 
 Previously requested items:
 ${linesText}
@@ -159,7 +159,7 @@ StockHub`;
   <head><meta charset="utf-8" /></head>
   <body style="font-family:system-ui,sans-serif;line-height:1.5;color:#18181b;">
     <p>Dear ${params.supplierName},</p>
-    <p>We are cancelling purchase order <strong>${params.orderId}</strong>.</p>
+    <p>We are cancelling purchase order <strong>${params.orderCode}</strong>.</p>
     <p><strong>Previously requested items:</strong></p>
     ${linesHtml}
     <p>Please disregard this order. We apologise for any inconvenience.</p>
@@ -178,7 +178,7 @@ StockHub`;
 export async function sendSupplierOrderSucceededEmail(params: {
   supplierEmail: string;
   supplierName: string;
-  orderId: string;
+  orderCode: string;
   lines: CheckedLineForEmail[];
 }): Promise<{ ok: true } | { ok: false; message: string }> {
   const subject = "StockHub — delivery confirmed";
@@ -187,7 +187,7 @@ export async function sendSupplierOrderSucceededEmail(params: {
 
   const text = `Dear ${params.supplierName},
 
-Thank you for order ${params.orderId}. We have received the goods and confirmed that everything matches our expectations.
+Thank you for order ${params.orderCode}. We have received the goods and confirmed that everything matches our expectations.
 
 Received items:
 ${linesText}
@@ -200,7 +200,7 @@ StockHub`;
   <head><meta charset="utf-8" /></head>
   <body style="font-family:system-ui,sans-serif;line-height:1.5;color:#18181b;">
     <p>Dear ${params.supplierName},</p>
-    <p>Thank you for order <strong>${params.orderId}</strong>. We have received the goods and confirmed that everything matches our expectations.</p>
+    <p>Thank you for order <strong>${params.orderCode}</strong>. We have received the goods and confirmed that everything matches our expectations.</p>
     <p><strong>Received items:</strong></p>
     ${linesHtml}
     <p>Best regards,<br />StockHub</p>
@@ -218,7 +218,7 @@ StockHub`;
 export async function sendSupplierOrderDoneEmail(params: {
   supplierEmail: string;
   supplierName: string;
-  orderId: string;
+  orderCode: string;
   lines: CheckedLineForEmail[];
   adminCloseNote: string;
 }): Promise<{ ok: true } | { ok: false; message: string }> {
@@ -228,7 +228,7 @@ export async function sendSupplierOrderDoneEmail(params: {
 
   const text = `Dear ${params.supplierName},
 
-We have reviewed order ${params.orderId} and found discrepancies during warehouse checking.
+We have reviewed order ${params.orderCode} and found discrepancies during warehouse checking.
 
 Issue note:
 ${params.adminCloseNote}
@@ -246,7 +246,7 @@ StockHub`;
   <head><meta charset="utf-8" /></head>
   <body style="font-family:system-ui,sans-serif;line-height:1.5;color:#18181b;">
     <p>Dear ${params.supplierName},</p>
-    <p>We have reviewed order <strong>${params.orderId}</strong> and found discrepancies during warehouse checking.</p>
+    <p>We have reviewed order <strong>${params.orderCode}</strong> and found discrepancies during warehouse checking.</p>
     <p><strong>Issue note:</strong></p>
     <p>${params.adminCloseNote}</p>
     <p><strong>Checked items:</strong></p>

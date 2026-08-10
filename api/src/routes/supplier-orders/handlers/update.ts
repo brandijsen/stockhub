@@ -84,7 +84,7 @@ export async function updateSupplierOrder(
     const mailResult = await sendSupplierOrderUpdatedEmail({
       supplierEmail: supplier.email,
       supplierName: supplier.name,
-      orderId: order.id,
+      orderCode: order.code,
       lines: orderLinesForEmail(lines, articleCheck.articles),
     });
 

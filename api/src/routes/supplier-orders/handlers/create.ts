@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 
 import { sendSupplierOrderCreatedEmail } from "../../../lib/supplier-order-mail";
+import { generateOrderCode } from "../../../lib/order-code";
 import { prisma } from "../../../lib/prisma";
 import type { AuthenticatedRequest } from "../../../middleware/require-auth";
 import { createSupplierOrderSchema } from "../schemas";
@@ -43,19 +44,23 @@ export async function createSupplierOrder(
       return;
     }
 
-    const order = await prisma.supplierOrder.create({
-      data: {
-        status: "PENDING",
-        supplierId,
-        createdById: session.sub,
-        lines: {
-          create: lines.map((line) => ({
-            articleId: line.articleId,
-            qtyOrdered: line.qtyOrdered,
-          })),
+    const order = await prisma.$transaction(async (tx) => {
+      const code = await generateOrderCode(tx, "SO");
+      return tx.supplierOrder.create({
+        data: {
+          code,
+          status: "PENDING",
+          supplierId,
+          createdById: session.sub,
+          lines: {
+            create: lines.map((line) => ({
+              articleId: line.articleId,
+              qtyOrdered: line.qtyOrdered,
+            })),
+          },
         },
-      },
-      include: supplierOrderInclude,
+        include: supplierOrderInclude,
+      });
     });
 
     const serialized = serializeSupplierOrder(order);
@@ -63,7 +68,7 @@ export async function createSupplierOrder(
     const mailResult = await sendSupplierOrderCreatedEmail({
       supplierEmail: supplier.email,
       supplierName: supplier.name,
-      orderId: order.id,
+      orderCode: order.code,
       lines: order.lines.map((line) => ({
         code: line.article.code,
         name: line.article.name,

@@ -151,13 +151,13 @@ export async function closeSupplierOrder(
         ? await sendSupplierOrderSucceededEmail({
             supplierEmail: order.supplier.email,
             supplierName: order.supplier.name,
-            orderId: order.id,
+            orderCode: order.code,
             lines: emailLines,
           })
         : await sendSupplierOrderDoneEmail({
             supplierEmail: order.supplier.email,
             supplierName: order.supplier.name,
-            orderId: order.id,
+            orderCode: order.code,
             lines: emailLines,
             adminCloseNote: adminCloseNote ?? "",
           });

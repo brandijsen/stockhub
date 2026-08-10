@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
 
+import { generateOrderCode } from "../../../lib/order-code";
 import { prisma } from "../../../lib/prisma";
 import type { AuthenticatedRequest } from "../../../middleware/require-auth";
 import { createCustomerOrderSchema } from "../schemas";
@@ -41,8 +42,10 @@ export async function createCustomerOrder(
     }
 
     const order = await prisma.$transaction(async (tx) => {
+      const code = await generateOrderCode(tx, "CO");
       const created = await tx.customerOrder.create({
         data: {
+          code,
           status: "OPEN",
           customerId,
           createdById: session.sub,
@@ -68,16 +71,15 @@ export async function createCustomerOrder(
             articleId: line.articleId,
             userId: session.sub,
             relatedCustomerOrderId: created.id,
-            note: `Outbound for customer order ${created.id}`,
+            note: `Outbound for customer order ${code}`,
           },
         });
       }
 
-      const refreshed = await tx.customerOrder.findUniqueOrThrow({
+      return tx.customerOrder.findUniqueOrThrow({
         where: { id: created.id },
         include: customerOrderInclude,
       });
-      return refreshed;
     });
 
     res.status(201).json({ order: serializeCustomerOrder(order) });

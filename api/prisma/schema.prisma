@@ -321,6 +321,7 @@ enum SupplierOrderStatus {
 
 model SupplierOrder {
   id     String              @id @default(cuid())
+  code   String              @unique
   status SupplierOrderStatus @default(PENDING)
 
   supplierId  String
@@ -380,6 +381,7 @@ enum CustomerOrderStatus {
 
 model CustomerOrder {
   id           String               @id @default(cuid())
+  code         String               @unique
   status       CustomerOrderStatus  @default(OPEN)
   customerId   String
   customer     Customer             @relation(fields: [customerId], references: [id], onDelete: Restrict)

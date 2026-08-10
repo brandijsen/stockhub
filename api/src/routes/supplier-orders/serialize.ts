@@ -30,6 +30,7 @@ export type SerializedSupplierOrderUser = {
 
 export type SerializedSupplierOrder = {
   id: string;
+  code: string;
   status: string;
   supplier: {
     id: string;
@@ -127,6 +128,7 @@ export function serializeSupplierOrder(
 
   return {
     id: order.id,
+    code: order.code,
     status: order.status,
     supplier: {
       id: order.supplier.id,

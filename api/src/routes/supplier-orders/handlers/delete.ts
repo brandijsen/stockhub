@@ -30,7 +30,7 @@ export async function deleteSupplierOrder(
     const mailResult = await sendSupplierOrderCancelledEmail({
       supplierEmail: existing.supplier.email,
       supplierName: existing.supplier.name,
-      orderId: existing.id,
+      orderCode: existing.code,
       lines: existing.lines.map((line) => ({
         code: line.article.code,
         name: line.article.name,

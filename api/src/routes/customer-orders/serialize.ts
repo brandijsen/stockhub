@@ -26,6 +26,7 @@ export type SerializedCustomerOrderUser = {
 
 export type SerializedCustomerOrder = {
   id: string;
+  code: string;
   status: string;
   customer: {
     id: string;
@@ -78,6 +79,7 @@ export function serializeCustomerOrder(
 
   return {
     id: order.id,
+    code: order.code,
     status: order.status,
     customer: {
       id: order.customer.id,
