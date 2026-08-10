@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
-import { Spinner } from "@/components/Spinner";
+import { LoadingText } from "@/components/ContentSkeletons";
 import { apiErrorMessage } from "@/lib/api-client";
 import { fetchDashboardSummary, type DashboardSummary } from "@/lib/dashboard";
 import { canManageAdminCatalog } from "@/lib/roles";
@@ -21,14 +21,20 @@ type SectionLinkRowItem = {
 
 function DashboardSection({
   title,
+  href,
   children,
 }: {
   title: string;
+  href: string;
   children: React.ReactNode;
 }) {
   return (
     <section className="rounded-lg border border-zinc-200 bg-white p-4 sm:p-5">
-      <h2 className="text-base font-semibold text-zinc-900">{title}</h2>
+      <h2 className="text-base font-semibold text-zinc-900">
+        <Link href={href} className="hover:text-sky-800">
+          {title}
+        </Link>
+      </h2>
       <div className="mt-3">{children}</div>
     </section>
   );
@@ -198,11 +204,33 @@ export function DashboardAttention({ role }: DashboardAttentionProps) {
     [isAdmin, summary],
   );
 
-  if (loading) {
+  if (loading && !summary) {
     return (
-      <div className="mt-8 flex items-center gap-2 text-zinc-600">
-        <Spinner label="Loading dashboard" />
-        <span>Loading dashboard…</span>
+      <div className="mt-8 grid gap-4 lg:grid-cols-1">
+        <section className="rounded-lg border border-zinc-200 bg-white p-4 sm:p-5">
+          <h2 className="text-base font-semibold text-zinc-900">
+            <Link href="/articles" className="hover:text-sky-800">
+              Articles
+            </Link>
+          </h2>
+          <LoadingText className="mt-3 flex text-zinc-500" label="Loading articles" />
+        </section>
+        <section className="rounded-lg border border-zinc-200 bg-white p-4 sm:p-5">
+          <h2 className="text-base font-semibold text-zinc-900">
+            <Link href="/customer-orders" className="hover:text-sky-800">
+              Customer orders
+            </Link>
+          </h2>
+          <LoadingText className="mt-3 flex text-zinc-500" label="Loading customer orders" />
+        </section>
+        <section className="rounded-lg border border-zinc-200 bg-white p-4 sm:p-5">
+          <h2 className="text-base font-semibold text-zinc-900">
+            <Link href="/supplier-orders" className="hover:text-sky-800">
+              Supplier orders
+            </Link>
+          </h2>
+          <LoadingText className="mt-3 flex text-zinc-500" label="Loading supplier orders" />
+        </section>
       </div>
     );
   }
@@ -217,21 +245,21 @@ export function DashboardAttention({ role }: DashboardAttentionProps) {
 
   return (
     <div className="mt-8 grid gap-4 lg:grid-cols-1">
-      <DashboardSection title="Articles">
+      <DashboardSection title="Articles" href="/articles">
         <SectionRows
           rows={articleRows}
           emptyMessage="No stock needs replenishing."
         />
       </DashboardSection>
 
-      <DashboardSection title="Customer orders">
+      <DashboardSection title="Customer orders" href="/customer-orders">
         <SectionRows
           rows={customerOrderRows}
           emptyMessage="No pending customer orders."
         />
       </DashboardSection>
 
-      <DashboardSection title="Supplier orders">
+      <DashboardSection title="Supplier orders" href="/supplier-orders">
         <SectionRows
           rows={supplierOrderRows}
           emptyMessage="No pending supplier orders."

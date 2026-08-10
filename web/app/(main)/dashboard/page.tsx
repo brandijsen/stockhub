@@ -6,11 +6,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8">
-      <DashboardView
-        userName={user.name}
-        userEmail={user.email}
-        userRole={user.role}
-      />
+      <DashboardView userName={user.name} userRole={user.role} />
     </div>
   );
 }
