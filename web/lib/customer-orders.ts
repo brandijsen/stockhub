@@ -14,6 +14,7 @@ export type CustomerOrderLine = {
 
 export type CustomerOrder = {
   id: string;
+  code: string;
   status: "OPEN" | "PICKED_UP";
   customer: {
     id: string;
@@ -94,6 +95,19 @@ export function formatCustomerOrderDate(iso: string): string {
     dateStyle: "medium",
     timeStyle: "short",
   });
+}
+
+export function customerOrderStatusBadgeClass(
+  status: CustomerOrder["status"],
+): string {
+  switch (status) {
+    case "OPEN":
+      return "bg-amber-100 text-amber-900";
+    case "PICKED_UP":
+      return "bg-emerald-100 text-emerald-900";
+    default:
+      return "bg-zinc-100 text-zinc-800";
+  }
 }
 
 export function customerOrderStatusLabel(status: CustomerOrder["status"]): string {

@@ -27,6 +27,7 @@ export type SupplierOrderLine = {
 
 export type SupplierOrder = {
   id: string;
+  code: string;
   status: SupplierOrderStatus;
   supplier: {
     id: string;

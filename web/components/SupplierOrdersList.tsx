@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
-import { Spinner } from "@/components/Spinner";
+import { LoadingText } from "@/components/ContentSkeletons";
 import { ListFilterBanner } from "@/components/ListFilterBanner";
-import { ArticlesListPagination } from "@/components/articles-list/ArticlesListPagination";
+import { ListPagination } from "@/components/ListPagination";
 import {
   parseSupplierOrderStatusParam,
   supplierOrderStatusLabel,
@@ -22,6 +22,8 @@ export function SupplierOrdersList({ canManage }: SupplierOrdersListProps) {
   const searchParams = useSearchParams();
   const statusFilter = parseSupplierOrderStatusParam(searchParams.get("status"));
   const list = useSupplierOrdersList({ status: statusFilter });
+  const initialLoad = list.loading && list.orders.length === 0;
+  const refreshing = list.loading && list.orders.length > 0;
 
   return (
     <div>
@@ -59,11 +61,8 @@ export function SupplierOrdersList({ canManage }: SupplierOrdersListProps) {
         </p>
       ) : null}
 
-      {list.loading ? (
-        <div className="mt-8 flex items-center gap-2 text-zinc-600">
-          <Spinner label="Loading supplier orders" />
-          <span>Loading supplier orders…</span>
-        </div>
+      {initialLoad ? (
+        <LoadingText />
       ) : list.total === 0 ? (
         <p className="mt-8 text-zinc-600">
           {statusFilter
@@ -72,9 +71,9 @@ export function SupplierOrdersList({ canManage }: SupplierOrdersListProps) {
           {!statusFilter && canManage ? " Create the first purchase order." : null}
         </p>
       ) : (
-        <>
+        <div className={refreshing ? "opacity-60" : undefined}>
           <SupplierOrdersListTable orders={list.orders} />
-          <ArticlesListPagination
+          <ListPagination
             rangeStart={list.rangeStart}
             rangeEnd={list.rangeEnd}
             total={list.total}
@@ -86,7 +85,7 @@ export function SupplierOrdersList({ canManage }: SupplierOrdersListProps) {
               list.setPage((p) => Math.min(list.totalPages, p + 1))
             }
           />
-        </>
+        </div>
       )}
     </div>
   );

@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
-import { ArticlesListPagination } from "@/components/articles-list/ArticlesListPagination";
+import { ListPagination } from "@/components/ListPagination";
+import { LoadingText } from "@/components/ContentSkeletons";
 import { ListFilterBanner } from "@/components/ListFilterBanner";
-import { Spinner } from "@/components/Spinner";
 import {
   customerOrderStatusLabel,
   parseCustomerOrderStatusParam,
@@ -23,6 +23,8 @@ export function CustomerOrdersList({ canManage }: CustomerOrdersListProps) {
   const statusFilter = parseCustomerOrderStatusParam(searchParams.get("status"));
   const { orders, page, totalPages, total, loading, error, rangeStart, rangeEnd, setPage } =
     useCustomerOrdersList({ status: statusFilter });
+  const initialLoad = loading && orders.length === 0;
+  const refreshing = loading && orders.length > 0;
 
   return (
     <div>
@@ -59,11 +61,8 @@ export function CustomerOrdersList({ canManage }: CustomerOrdersListProps) {
         </p>
       ) : null}
 
-      {loading ? (
-        <div className="mt-8 flex items-center gap-2 text-zinc-600">
-          <Spinner label="Loading customer orders" />
-          <span>Loading customer orders…</span>
-        </div>
+      {initialLoad ? (
+        <LoadingText />
       ) : orders.length === 0 ? (
         <p className="mt-8 text-zinc-600">
           {statusFilter
@@ -72,9 +71,9 @@ export function CustomerOrdersList({ canManage }: CustomerOrdersListProps) {
           {!statusFilter && canManage ? " Create the first order to get started." : null}
         </p>
       ) : (
-        <>
+        <div className={refreshing ? "opacity-60" : undefined}>
           <CustomerOrdersListTable orders={orders} />
-          <ArticlesListPagination
+          <ListPagination
             rangeStart={rangeStart}
             rangeEnd={rangeEnd}
             total={total}
@@ -84,7 +83,7 @@ export function CustomerOrdersList({ canManage }: CustomerOrdersListProps) {
             onPrevious={() => setPage((p) => Math.max(1, p - 1))}
             onNext={() => setPage((p) => Math.min(totalPages, p + 1))}
           />
-        </>
+        </div>
       )}
     </div>
   );
