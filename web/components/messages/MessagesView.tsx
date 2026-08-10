@@ -2,8 +2,6 @@
 
 import { useMemo } from "react";
 
-import { Spinner } from "@/components/Spinner";
-
 import { MessageThread } from "./MessageThread";
 import { MessagesInbox } from "./MessagesInbox";
 import { useConversations } from "./useConversations";
@@ -39,7 +37,7 @@ export function MessagesView({ withUserId }: MessagesViewProps) {
         <button
           type="button"
           onClick={() => void loadConversations(true)}
-          disabled={loading}
+          disabled={loading && conversations.length === 0}
           className="rounded-lg border border-zinc-300 bg-white px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-50"
         >
           Refresh
@@ -52,25 +50,22 @@ export function MessagesView({ withUserId }: MessagesViewProps) {
         </p>
       ) : null}
 
-      {loading && conversations.length === 0 ? (
-        <div className="mt-8 flex items-center gap-2 text-zinc-600">
-          <Spinner label="Loading conversations" />
-          <span>Loading conversations…</span>
+      <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <div className="lg:col-span-1">
+          <MessagesInbox
+            conversations={conversations}
+            selectedId={selectedId}
+            loading={loading}
+            onSelect={setSelectedId}
+          />
         </div>
-      ) : (
-        <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
-          <div className="lg:col-span-1">
-            <MessagesInbox
-              conversations={conversations}
-              selectedId={selectedId}
-              onSelect={setSelectedId}
+        <div className="lg:col-span-2">
+            <MessageThread
+              key={selectedConversation?.id ?? "none"}
+              conversation={selectedConversation}
             />
           </div>
-          <div className="lg:col-span-2">
-            <MessageThread conversation={selectedConversation} />
-          </div>
-        </div>
-      )}
+      </div>
     </div>
   );
 }

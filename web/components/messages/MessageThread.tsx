@@ -14,8 +14,19 @@ type MessageThreadProps = {
 
 export function MessageThread({ conversation }: MessageThreadProps) {
   const [draft, setDraft] = useState("");
-  const { messages, loading, sending, error, sendMessage, bottomRef } =
-    useMessageThread(conversation?.id ?? null);
+  const {
+    messages,
+    ready,
+    loadingOlder,
+    hasOlderMessages,
+    sending,
+    error,
+    sendMessage,
+    loadOlderMessages,
+    bottomRef,
+    scrollContainerRef,
+    onScroll,
+  } = useMessageThread(conversation?.id ?? null);
 
   if (!conversation) {
     return (
@@ -62,13 +73,29 @@ export function MessageThread({ conversation }: MessageThreadProps) {
         </p>
       ) : null}
 
-      <div className="flex-1 space-y-3 overflow-y-auto px-4 py-4">
-        {loading ? (
-          <div className="flex items-center gap-2 text-zinc-600">
-            <Spinner label="Loading messages" />
-            <span className="text-sm">Loading messages…</span>
+      <div
+        ref={scrollContainerRef}
+        onScroll={onScroll}
+        className="flex-1 space-y-3 overflow-y-auto px-4 py-4"
+      >
+        {hasOlderMessages ? (
+          <div className="flex justify-center pb-2">
+            <button
+              type="button"
+              onClick={() => void loadOlderMessages()}
+              disabled={loadingOlder}
+              className="rounded-lg border border-zinc-300 bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {loadingOlder ? (
+                <Spinner className="h-3.5 w-3.5" label="Loading older messages" />
+              ) : (
+                "Load older messages"
+              )}
+            </button>
           </div>
-        ) : messages.length === 0 ? (
+        ) : null}
+
+        {ready && messages.length === 0 ? (
           <p className="text-sm text-zinc-500">No messages yet. Say hello.</p>
         ) : (
           messages.map((message) => (
@@ -109,12 +136,12 @@ export function MessageThread({ conversation }: MessageThreadProps) {
             onChange={(event) => setDraft(event.target.value)}
             placeholder="Write a message…"
             maxLength={4000}
-            disabled={sending}
-            className="min-w-0 flex-1 rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-900"
+            disabled={sending || !ready}
+            className="min-w-0 flex-1 rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-900 disabled:bg-zinc-50"
           />
           <button
             type="submit"
-            disabled={sending || !draft.trim()}
+            disabled={sending || !ready || !draft.trim()}
             className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {sending ? "Sending…" : "Send"}

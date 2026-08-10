@@ -1,9 +1,11 @@
+import { Spinner } from "@/components/Spinner";
 import type { ConversationSummary } from "@/lib/messages";
 import { formatMessageTime } from "@/lib/messages";
 
 type MessagesInboxProps = {
   conversations: ConversationSummary[];
   selectedId: string | null;
+  loading?: boolean;
   onSelect: (id: string) => void;
 };
 
@@ -14,8 +16,21 @@ function statusDotClass(online: boolean): string {
 export function MessagesInbox({
   conversations,
   selectedId,
+  loading = false,
   onSelect,
 }: MessagesInboxProps) {
+  if (loading && conversations.length === 0) {
+    return (
+      <div
+        className="flex min-h-48 items-center justify-center rounded-lg border border-zinc-200 bg-white text-zinc-500"
+        aria-busy="true"
+        aria-label="Loading conversations"
+      >
+        <Spinner className="h-6 w-6" label="Loading conversations" />
+      </div>
+    );
+  }
+
   if (conversations.length === 0) {
     return (
       <p className="rounded-lg border border-zinc-200 bg-white p-4 text-sm text-zinc-600">

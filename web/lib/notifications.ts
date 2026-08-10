@@ -13,6 +13,7 @@ export type Notification = {
 
 export type NotificationsListResponse = {
   notifications: Notification[];
+  nextCursor: string | null;
 };
 
 export type UnreadNotificationsCountResponse = {
@@ -36,9 +37,14 @@ export function formatNotificationTime(iso: string): string {
   });
 }
 
-export async function fetchNotifications(): Promise<Notification[]> {
-  const { data } = await api.get<NotificationsListResponse>("/api/notifications");
-  return data.notifications;
+export async function fetchNotifications(
+  cursor?: string,
+): Promise<NotificationsListResponse> {
+  const { data } = await api.get<NotificationsListResponse>(
+    "/api/notifications",
+    { params: cursor ? { cursor } : undefined },
+  );
+  return data;
 }
 
 export async function fetchUnreadNotificationsCount(): Promise<number> {

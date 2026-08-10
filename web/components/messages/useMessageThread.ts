@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import {
   type ChatMessage,
@@ -11,49 +11,124 @@ import {
 import { apiErrorMessage } from "@/lib/api-client";
 
 const POLL_INTERVAL_MS = 10_000;
+const NEAR_BOTTOM_THRESHOLD_PX = 80;
 
 export function useMessageThread(conversationId: string | null) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [ready, setReady] = useState(false);
+  const [loadingOlder, setLoadingOlder] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const isNearBottomRef = useRef(true);
+  const shouldScrollToBottomRef = useRef(false);
 
   const scrollToBottom = useCallback(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    const container = scrollContainerRef.current;
+    if (!container) {
+      return;
+    }
+    container.scrollTop = container.scrollHeight;
+  }, []);
+
+  const updateNearBottom = useCallback(() => {
+    const container = scrollContainerRef.current;
+    if (!container) {
+      return;
+    }
+
+    isNearBottomRef.current =
+      container.scrollHeight - container.scrollTop - container.clientHeight <
+      NEAR_BOTTOM_THRESHOLD_PX;
   }, []);
 
   const loadMessages = useCallback(
     async (silent = false) => {
       if (!conversationId) {
-        setMessages([]);
         return;
       }
 
       if (!silent) {
-        setLoading(true);
+        setReady(false);
       }
       setError(null);
       try {
-        const { messages: page } = await fetchMessages(conversationId);
-        setMessages(page);
+        const { messages: page, nextCursor: cursor } =
+          await fetchMessages(conversationId);
+
+        if (silent) {
+          setMessages((current) => {
+            const existingIds = new Set(current.map((message) => message.id));
+            const newMessages = page.filter(
+              (message) => !existingIds.has(message.id),
+            );
+            if (newMessages.length === 0) {
+              return current;
+            }
+            if (isNearBottomRef.current) {
+              shouldScrollToBottomRef.current = true;
+            }
+            return [...current, ...newMessages];
+          });
+        } else {
+          setMessages(page);
+          setNextCursor(cursor);
+          shouldScrollToBottomRef.current = true;
+          setReady(true);
+        }
+
         await markConversationRead(conversationId);
       } catch (e) {
         setError(apiErrorMessage(e, "Failed to load messages"));
-      } finally {
         if (!silent) {
-          setLoading(false);
+          setReady(true);
         }
       }
     },
     [conversationId],
   );
 
+  const loadOlderMessages = useCallback(async () => {
+    if (!conversationId || !nextCursor || loadingOlder) {
+      return;
+    }
+
+    const container = scrollContainerRef.current;
+    const previousScrollHeight = container?.scrollHeight ?? 0;
+
+    setLoadingOlder(true);
+    setError(null);
+    try {
+      const { messages: older, nextCursor: cursor } = await fetchMessages(
+        conversationId,
+        nextCursor,
+      );
+      setMessages((current) => [...older, ...current]);
+      setNextCursor(cursor);
+
+      requestAnimationFrame(() => {
+        if (!container) {
+          return;
+        }
+        container.scrollTop += container.scrollHeight - previousScrollHeight;
+        updateNearBottom();
+      });
+    } catch (e) {
+      setError(apiErrorMessage(e, "Failed to load older messages"));
+    } finally {
+      setLoadingOlder(false);
+    }
+  }, [conversationId, nextCursor, loadingOlder, updateNearBottom]);
+
   useEffect(() => {
-    void loadMessages();
     if (!conversationId) {
       return;
     }
+
+    isNearBottomRef.current = true;
+    void loadMessages();
 
     const intervalId = window.setInterval(
       () => void loadMessages(true),
@@ -62,9 +137,15 @@ export function useMessageThread(conversationId: string | null) {
     return () => window.clearInterval(intervalId);
   }, [conversationId, loadMessages]);
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages, scrollToBottom]);
+  useLayoutEffect(() => {
+    if (loadingOlder) {
+      return;
+    }
+    if (shouldScrollToBottomRef.current) {
+      scrollToBottom();
+      shouldScrollToBottomRef.current = false;
+    }
+  }, [messages, loadingOlder, scrollToBottom]);
 
   const sendMessage = useCallback(
     async (body: string) => {
@@ -77,6 +158,7 @@ export function useMessageThread(conversationId: string | null) {
       try {
         const message = await sendChatMessage(conversationId, body.trim());
         setMessages((current) => [...current, message]);
+        shouldScrollToBottomRef.current = true;
         await markConversationRead(conversationId);
         return true;
       } catch (e) {
@@ -91,10 +173,15 @@ export function useMessageThread(conversationId: string | null) {
 
   return {
     messages,
-    loading,
+    ready,
+    loadingOlder,
+    hasOlderMessages: nextCursor != null,
     sending,
     error,
     sendMessage,
+    loadOlderMessages,
     bottomRef,
+    scrollContainerRef,
+    onScroll: updateNearBottom,
   };
 }
