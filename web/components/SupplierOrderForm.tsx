@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { type FormEvent, useEffect, useMemo, useState } from "react";
 
 import { articleFormInputClass } from "@/components/article-form/input-styles";
+import { LoadingText } from "@/components/ContentSkeletons";
 import { Spinner } from "@/components/Spinner";
 import { apiErrorMessage } from "@/lib/api-client";
 import { fetchArticles, type Article } from "@/lib/articles";
@@ -156,12 +157,7 @@ export function SupplierOrderForm({ order }: { order?: SupplierOrder }) {
   }
 
   if (loadingOptions) {
-    return (
-      <div className="flex items-center gap-2 text-zinc-600">
-        <Spinner label="Loading form" />
-        <span>Loading suppliers and articles…</span>
-      </div>
-    );
+    return <LoadingText className="mt-6" />;
   }
 
   if (optionsError) {

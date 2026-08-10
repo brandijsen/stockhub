@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from "react";
 
-import { Spinner } from "@/components/Spinner";
+import { LoadingText } from "@/components/ContentSkeletons";
 import type { StaffUser } from "@/lib/staff";
 
 import { StaffListTable } from "./staff-list/StaffListTable";
@@ -57,21 +57,20 @@ export function StaffList({ currentUserId, canManageRoles }: StaffListProps) {
         </p>
       ) : null}
 
-      {loading ? (
-        <div className="mt-8 flex items-center gap-2 text-zinc-600">
-          <Spinner label="Loading staff" />
-          <span>Loading staff…</span>
-        </div>
+      {loading && users.length === 0 ? (
+        <LoadingText />
       ) : users.length === 0 ? (
         <p className="mt-8 text-zinc-600">No staff members yet.</p>
       ) : (
-        <StaffListTable
-          users={users}
-          currentUserId={currentUserId}
-          canManageRoles={canManageRoles}
-          onUserUpdated={handleUserUpdated}
-          onRoleError={setRoleError}
-        />
+        <div className={loading || refreshing ? "opacity-60" : undefined}>
+          <StaffListTable
+            users={users}
+            currentUserId={currentUserId}
+            canManageRoles={canManageRoles}
+            onUserUpdated={handleUserUpdated}
+            onRoleError={setRoleError}
+          />
+        </div>
       )}
     </div>
   );

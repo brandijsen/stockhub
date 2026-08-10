@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from "react";
 
-import { Spinner } from "@/components/Spinner";
+import { LoadingText } from "@/components/ContentSkeletons";
 import type { Supplier } from "@/lib/suppliers";
 
 import { SupplierForm } from "./suppliers-list/SupplierForm";
@@ -105,34 +105,33 @@ export function SuppliersList({ canManage }: SuppliersListProps) {
         </div>
       ) : null}
 
-      {loading ? (
-        <div className="mt-8 flex items-center gap-2 text-zinc-600">
-          <Spinner label="Loading suppliers" />
-          <span>Loading suppliers…</span>
-        </div>
+      {loading && suppliers.length === 0 ? (
+        <LoadingText />
       ) : suppliers.length === 0 ? (
         <p className="mt-8 text-zinc-600">
           No suppliers yet.
           {canManage ? " Add your first supplier to get started." : null}
         </p>
       ) : (
-        <SuppliersListTable
-          suppliers={suppliers}
-          canManage={canManage}
-          deletingId={deletingId}
-          onEdit={(supplier) => {
-            setEditingSupplier(supplier);
-            setFormMode("edit");
-            setActionError(null);
-          }}
-          onDeleteStart={setDeletingId}
-          onDeleteEnd={() => setDeletingId(null)}
-          onDeleted={(id) => {
-            removeSupplier(id);
-            setActionError(null);
-          }}
-          onDeleteError={setActionError}
-        />
+        <div className={loading || refreshing ? "opacity-60" : undefined}>
+          <SuppliersListTable
+            suppliers={suppliers}
+            canManage={canManage}
+            deletingId={deletingId}
+            onEdit={(supplier) => {
+              setEditingSupplier(supplier);
+              setFormMode("edit");
+              setActionError(null);
+            }}
+            onDeleteStart={setDeletingId}
+            onDeleteEnd={() => setDeletingId(null)}
+            onDeleted={(id) => {
+              removeSupplier(id);
+              setActionError(null);
+            }}
+            onDeleteError={setActionError}
+          />
+        </div>
       )}
     </div>
   );

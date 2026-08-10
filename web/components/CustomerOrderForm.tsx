@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { type FormEvent, useEffect, useState } from "react";
 
 import { articleFormInputClass } from "@/components/article-form/input-styles";
-import { Spinner } from "@/components/Spinner";
+import { LoadingText } from "@/components/ContentSkeletons";
 import { apiErrorMessage } from "@/lib/api-client";
 import { fetchArticles, type Article } from "@/lib/articles";
 import { createCustomerOrder } from "@/lib/customer-orders";
@@ -116,12 +116,7 @@ export function CustomerOrderForm() {
   }
 
   if (loadingOptions) {
-    return (
-      <div className="mt-8 flex items-center gap-2 text-zinc-600">
-        <Spinner label="Loading form" />
-        <span>Loading customers and articles…</span>
-      </div>
-    );
+    return <LoadingText className="mt-8" />;
   }
 
   return (

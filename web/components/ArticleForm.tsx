@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 
+import { LoadingText } from "@/components/ContentSkeletons";
 import { Spinner } from "@/components/Spinner";
 
 import { ArticleFormCoreFields } from "./article-form/ArticleFormCoreFields";
@@ -16,12 +17,7 @@ export function ArticleForm({ mode, articleId }: ArticleFormProps) {
   const form = useArticleForm({ mode, articleId });
 
   if (form.loading) {
-    return (
-      <div className="flex items-center gap-2 text-zinc-600">
-        <Spinner label="Loading article" />
-        <span>Loading article…</span>
-      </div>
-    );
+    return <LoadingText className="mt-6" />;
   }
 
   return (

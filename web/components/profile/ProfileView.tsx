@@ -1,6 +1,6 @@
 "use client";
 
-import { Spinner } from "@/components/Spinner";
+import { LoadingText } from "@/components/ContentSkeletons";
 
 import { ProfileCard } from "./ProfileCard";
 import { useProfile } from "./useProfile";
@@ -23,11 +23,8 @@ export function ProfileView() {
         </p>
       ) : null}
 
-      {loading ? (
-        <div className="mt-8 flex items-center gap-2 text-zinc-600">
-          <Spinner label="Loading profile" />
-          <span>Loading profile…</span>
-        </div>
+      {loading && !user ? (
+        <LoadingText className="mt-8 max-w-2xl" />
       ) : user ? (
         <div className="mt-6 max-w-2xl">
           <ProfileCard user={user} onUpdated={setUser} />

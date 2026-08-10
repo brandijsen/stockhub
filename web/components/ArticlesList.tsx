@@ -2,12 +2,12 @@
 
 import { useSearchParams } from "next/navigation";
 
-import { Spinner } from "@/components/Spinner";
+import { LoadingText } from "@/components/ContentSkeletons";
 import { ListFilterBanner } from "@/components/ListFilterBanner";
 
 import { ArticlesListFilters } from "./articles-list/ArticlesListFilters";
 import { ArticlesListHeader } from "./articles-list/ArticlesListHeader";
-import { ArticlesListPagination } from "./articles-list/ArticlesListPagination";
+import { ListPagination } from "@/components/ListPagination";
 import { ArticlesListTable } from "./articles-list/ArticlesListTable";
 import { useArticlesList } from "./articles-list/useArticlesList";
 
@@ -20,6 +20,8 @@ export function ArticlesList({ canManage }: ArticlesListProps) {
   const initialLowStockOnly = searchParams.get("lowStock") === "true";
   const initialActiveOnly = searchParams.get("active") === "true";
   const list = useArticlesList({ initialLowStockOnly, initialActiveOnly });
+  const initialLoad = list.loading && list.articles.length === 0;
+  const refreshing = list.loading && list.articles.length > 0;
 
   return (
     <div>
@@ -75,11 +77,8 @@ export function ArticlesList({ canManage }: ArticlesListProps) {
         </p>
       ) : null}
 
-      {list.loading ? (
-        <div className="mt-8 flex items-center gap-2 text-zinc-600">
-          <Spinner label="Loading articles" />
-          <span>Loading articles…</span>
-        </div>
+      {initialLoad ? (
+        <LoadingText />
       ) : list.total === 0 ? (
         <p className="mt-8 text-zinc-600">
           {list.hasFilters
@@ -87,14 +86,14 @@ export function ArticlesList({ canManage }: ArticlesListProps) {
             : "No articles yet."}
         </p>
       ) : (
-        <>
+        <div className={refreshing ? "opacity-60" : undefined}>
           <ArticlesListTable
             articles={list.articles}
             canManage={canManage}
             deletingId={list.deletingId}
             onDelete={list.handleDelete}
           />
-          <ArticlesListPagination
+          <ListPagination
             rangeStart={list.rangeStart}
             rangeEnd={list.rangeEnd}
             total={list.total}
@@ -106,7 +105,7 @@ export function ArticlesList({ canManage }: ArticlesListProps) {
               list.setPage((p) => Math.min(list.totalPages, p + 1))
             }
           />
-        </>
+        </div>
       )}
     </div>
   );

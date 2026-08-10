@@ -1,4 +1,4 @@
-type ArticlesListPaginationProps = {
+type ListPaginationProps = {
   rangeStart: number;
   rangeEnd: number;
   total: number;
@@ -9,7 +9,7 @@ type ArticlesListPaginationProps = {
   onNext: () => void;
 };
 
-export function ArticlesListPagination({
+export function ListPagination({
   rangeStart,
   rangeEnd,
   total,
@@ -18,7 +18,7 @@ export function ArticlesListPagination({
   loading,
   onPrevious,
   onNext,
-}: ArticlesListPaginationProps) {
+}: ListPaginationProps) {
   return (
     <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-sm text-zinc-600">
       <p>

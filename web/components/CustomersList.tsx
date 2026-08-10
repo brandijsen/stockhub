@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from "react";
 
-import { Spinner } from "@/components/Spinner";
+import { LoadingText } from "@/components/ContentSkeletons";
 import type { Customer } from "@/lib/customers";
 
 import { CustomerForm } from "./customers-list/CustomerForm";
@@ -105,34 +105,33 @@ export function CustomersList({ canManage }: CustomersListProps) {
         </div>
       ) : null}
 
-      {loading ? (
-        <div className="mt-8 flex items-center gap-2 text-zinc-600">
-          <Spinner label="Loading customers" />
-          <span>Loading customers…</span>
-        </div>
+      {loading && customers.length === 0 ? (
+        <LoadingText />
       ) : customers.length === 0 ? (
         <p className="mt-8 text-zinc-600">
           No customers yet.
           {canManage ? " Add your first customer to get started." : null}
         </p>
       ) : (
-        <CustomersListTable
-          customers={customers}
-          canManage={canManage}
-          deletingId={deletingId}
-          onEdit={(customer) => {
-            setEditingCustomer(customer);
-            setFormMode("edit");
-            setActionError(null);
-          }}
-          onDeleteStart={setDeletingId}
-          onDeleteEnd={() => setDeletingId(null)}
-          onDeleted={(id) => {
-            removeCustomer(id);
-            setActionError(null);
-          }}
-          onDeleteError={setActionError}
-        />
+        <div className={loading || refreshing ? "opacity-60" : undefined}>
+          <CustomersListTable
+            customers={customers}
+            canManage={canManage}
+            deletingId={deletingId}
+            onEdit={(customer) => {
+              setEditingCustomer(customer);
+              setFormMode("edit");
+              setActionError(null);
+            }}
+            onDeleteStart={setDeletingId}
+            onDeleteEnd={() => setDeletingId(null)}
+            onDeleted={(id) => {
+              removeCustomer(id);
+              setActionError(null);
+            }}
+            onDeleteError={setActionError}
+          />
+        </div>
       )}
     </div>
   );

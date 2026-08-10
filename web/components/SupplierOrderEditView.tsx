@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { SupplierOrderForm } from "@/components/SupplierOrderForm";
-import { Spinner } from "@/components/Spinner";
+import { LoadingText } from "@/components/ContentSkeletons";
 import { apiErrorMessage } from "@/lib/api-client";
 import { fetchSupplierOrder, type SupplierOrder } from "@/lib/supplier-orders";
 
@@ -48,13 +48,8 @@ export function SupplierOrderEditView({ orderId }: SupplierOrderEditViewProps) {
     };
   }, [orderId]);
 
-  if (loading) {
-    return (
-      <div className="flex items-center gap-2 text-zinc-600">
-        <Spinner label="Loading supplier order" />
-        <span>Loading order…</span>
-      </div>
-    );
+  if (loading && !order) {
+    return <LoadingText className="mt-6" />;
   }
 
   if (error || !order) {

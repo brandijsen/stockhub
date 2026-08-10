@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import { LoadingText } from "@/components/ContentSkeletons";
 import { Spinner } from "@/components/Spinner";
 import { ArticleStockAdjustSection } from "@/components/articles/ArticleStockAdjustSection";
 import {
@@ -84,11 +85,13 @@ export function ArticleDetail({ articleId, canManage }: ArticleDetailProps) {
     }
   }
 
-  if (loading) {
+  if (loading && !article) {
     return (
-      <div className="flex items-center gap-2 text-zinc-600">
-        <Spinner label="Loading article" />
-        <span>Loading article…</span>
+      <div>
+        <Link href="/articles" className="text-sm text-zinc-600 hover:text-zinc-900">
+          ← Back to articles
+        </Link>
+        <LoadingText className="mt-6" />
       </div>
     );
   }
