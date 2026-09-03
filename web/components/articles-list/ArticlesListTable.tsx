@@ -1,11 +1,11 @@
 import Link from "next/link";
 
-import type { Article } from "@/lib/articles";
+import type { ArticleListItem } from "@/lib/articles";
 
 import { ArticleThumbnail } from "./ArticleThumbnail";
 
 type ArticlesListTableProps = {
-  articles: Article[];
+  articles: ArticleListItem[];
   canManage: boolean;
   deletingId: string | null;
   onDelete: (id: string, code: string) => void;

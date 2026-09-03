@@ -1,9 +1,7 @@
 import type { Request, Response } from "express";
 
-import { sendSupplierOrderCancelledEmail } from "../../../lib/supplier-order-mail";
 import { prisma } from "../../../lib/prisma";
 import { assertPendingOrderStatus } from "../pending-guard";
-import { supplierOrderInclude } from "../serialize";
 
 export async function deleteSupplierOrder(
   req: Request,
@@ -14,7 +12,7 @@ export async function deleteSupplierOrder(
   try {
     const existing = await prisma.supplierOrder.findUnique({
       where: { id },
-      include: supplierOrderInclude,
+      select: { id: true, status: true },
     });
     if (!existing) {
       res.status(404).json({ error: "Supplier order not found" });
@@ -27,24 +25,9 @@ export async function deleteSupplierOrder(
       return;
     }
 
-    const mailResult = await sendSupplierOrderCancelledEmail({
-      supplierEmail: existing.supplier.email,
-      supplierName: existing.supplier.name,
-      orderCode: existing.code,
-      lines: existing.lines.map((line) => ({
-        code: line.article.code,
-        name: line.article.name,
-        qtyOrdered: line.qtyOrdered,
-      })),
-    });
-
     await prisma.supplierOrder.delete({ where: { id } });
 
-    res.json({
-      ok: true,
-      supplierEmailSent: mailResult.ok,
-      ...(mailResult.ok ? {} : { supplierEmailError: mailResult.message }),
-    });
+    res.json({ ok: true });
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: "Failed to delete supplier order" });

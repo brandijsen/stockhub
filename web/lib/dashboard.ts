@@ -6,7 +6,6 @@ export type DashboardSummary = {
   supplierOrdersChecking: number;
   supplierOrdersChecked: number;
   customerOrdersOpen: number;
-  unreadNotifications: number;
 };
 
 export type DashboardSummaryResponse = {

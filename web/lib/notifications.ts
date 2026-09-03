@@ -1,4 +1,5 @@
 import { api } from "@/lib/api-client";
+import { formatDateTime } from "@/lib/format-dates";
 
 export type Notification = {
   id: string;
@@ -31,10 +32,27 @@ export function notificationHref(notification: Notification): string | null {
 }
 
 export function formatNotificationTime(iso: string): string {
-  return new Date(iso).toLocaleString(undefined, {
-    dateStyle: "medium",
-    timeStyle: "short",
-  });
+  return formatDateTime(iso);
+}
+
+const NOTIFICATION_TYPE_LABELS: Record<string, string> = {
+  STOCK_ADJUSTMENT: "Stock",
+  SUPPLIER_ORDER_ARRIVED: "Supplier order",
+};
+
+export function notificationTypeLabel(type: string): string {
+  return NOTIFICATION_TYPE_LABELS[type] ?? "System";
+}
+
+export function notificationTypeBadgeClass(type: string): string {
+  switch (type) {
+    case "STOCK_ADJUSTMENT":
+      return "bg-amber-100 text-amber-900";
+    case "SUPPLIER_ORDER_ARRIVED":
+      return "bg-sky-100 text-sky-900";
+    default:
+      return "bg-zinc-100 text-zinc-700";
+  }
 }
 
 export async function fetchNotifications(

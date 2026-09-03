@@ -1,9 +1,5 @@
 import type { Request, Response } from "express";
 
-import {
-  sendSupplierOrderDoneEmail,
-  sendSupplierOrderSucceededEmail,
-} from "../../../lib/supplier-order-mail";
 import { prisma } from "../../../lib/prisma";
 import type { AuthenticatedRequest } from "../../../middleware/require-auth";
 import { assertCheckedStatus } from "../checked-guard";
@@ -12,31 +8,6 @@ import {
   serializeSupplierOrder,
   supplierOrderInclude,
 } from "../serialize";
-
-type CheckedLine = {
-  code: string;
-  name: string;
-  qtyOrdered: number;
-  qtyReceivedActual: number;
-  lineConform: boolean;
-};
-
-function linesForCloseEmail(
-  lines: Array<{
-    qtyOrdered: number;
-    qtyReceivedActual: number | null;
-    lineConform: boolean | null;
-    article: { code: string; name: string };
-  }>,
-): CheckedLine[] {
-  return lines.map((line) => ({
-    code: line.article.code,
-    name: line.article.name,
-    qtyOrdered: line.qtyOrdered,
-    qtyReceivedActual: line.qtyReceivedActual ?? 0,
-    lineConform: line.lineConform ?? false,
-  }));
-}
 
 function validateCheckingComplete(
   lines: Array<{
@@ -145,27 +116,8 @@ export async function closeSupplierOrder(
       include: supplierOrderInclude,
     });
 
-    const emailLines = linesForCloseEmail(order.lines);
-    const mailResult =
-      outcome === "SUCCEEDED"
-        ? await sendSupplierOrderSucceededEmail({
-            supplierEmail: order.supplier.email,
-            supplierName: order.supplier.name,
-            orderCode: order.code,
-            lines: emailLines,
-          })
-        : await sendSupplierOrderDoneEmail({
-            supplierEmail: order.supplier.email,
-            supplierName: order.supplier.name,
-            orderCode: order.code,
-            lines: emailLines,
-            adminCloseNote: adminCloseNote ?? "",
-          });
-
     res.json({
       order: serializeSupplierOrder(order),
-      supplierEmailSent: mailResult.ok,
-      ...(mailResult.ok ? {} : { supplierEmailError: mailResult.message }),
     });
   } catch (e) {
     console.error(e);

@@ -1,8 +1,5 @@
 import type { Request, Response } from "express";
 
-import {
-  sendSupplierOrderUpdatedEmail,
-} from "../../../lib/supplier-order-mail";
 import { prisma } from "../../../lib/prisma";
 import { assertPendingOrderStatus } from "../pending-guard";
 import { updateSupplierOrderSchema } from "../schemas";
@@ -11,7 +8,6 @@ import {
   supplierOrderInclude,
 } from "../serialize";
 import {
-  orderLinesForEmail,
   validateSupplierOrderLines,
 } from "../validate-lines";
 
@@ -80,18 +76,8 @@ export async function updateSupplierOrder(
       });
     });
 
-    const serialized = serializeSupplierOrder(order);
-    const mailResult = await sendSupplierOrderUpdatedEmail({
-      supplierEmail: supplier.email,
-      supplierName: supplier.name,
-      orderCode: order.code,
-      lines: orderLinesForEmail(lines, articleCheck.articles),
-    });
-
     res.json({
-      order: serialized,
-      supplierEmailSent: mailResult.ok,
-      ...(mailResult.ok ? {} : { supplierEmailError: mailResult.message }),
+      order: serializeSupplierOrder(order),
     });
   } catch (e) {
     console.error(e);

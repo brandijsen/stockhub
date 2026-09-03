@@ -1,8 +1,8 @@
 import { useState } from "react";
 
-import type { Article } from "@/lib/articles";
+import type { ArticleListItem } from "@/lib/articles";
 
-export function ArticleThumbnail({ article }: { article: Article }) {
+export function ArticleThumbnail({ article }: { article: ArticleListItem }) {
   const [failed, setFailed] = useState(false);
 
   if (!article.imageUrl || failed) {

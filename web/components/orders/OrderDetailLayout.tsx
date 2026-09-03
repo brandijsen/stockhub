@@ -9,6 +9,8 @@ type OrderDetailHeaderProps = {
   statusBadgeClass: string;
   createdAt: string;
   createdByName: string;
+  createdByEmail?: string | null;
+  updatedAt?: string | null;
   formatDate: (iso: string) => string;
   extraMeta?: React.ReactNode;
   actions?: React.ReactNode;
@@ -23,6 +25,8 @@ export function OrderDetailHeader({
   statusBadgeClass,
   createdAt,
   createdByName,
+  createdByEmail,
+  updatedAt,
   formatDate,
   extraMeta,
   actions,
@@ -43,6 +47,14 @@ export function OrderDetailHeader({
           <p className="mt-1 text-sm text-zinc-600">
             Created {formatDate(createdAt)} by {createdByName}
           </p>
+          {createdByEmail ? (
+            <p className="text-sm text-zinc-500">{createdByEmail}</p>
+          ) : null}
+          {updatedAt && updatedAt !== createdAt ? (
+            <p className="mt-1 text-sm text-zinc-500">
+              Updated {formatDate(updatedAt)}
+            </p>
+          ) : null}
           {extraMeta}
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -61,8 +73,9 @@ export function OrderDetailHeader({
 type OrderInfoCardsProps = {
   partyTitle: string;
   partyName: string;
-  partyEmail: string;
+  partyEmail?: string | null;
   partyPhone?: string | null;
+  partyAddress?: string | null;
   lineCount: number;
   totalQty: number;
   totalQtyLabel: string;
@@ -73,6 +86,7 @@ export function OrderInfoCards({
   partyName,
   partyEmail,
   partyPhone,
+  partyAddress,
   lineCount,
   totalQty,
   totalQtyLabel,
@@ -82,8 +96,11 @@ export function OrderInfoCards({
       <div className="rounded-lg border border-zinc-200 bg-white p-4 text-sm">
         <h2 className="font-medium text-zinc-900">{partyTitle}</h2>
         <p className="mt-2 font-medium text-zinc-900">{partyName}</p>
-        <p className="mt-1 text-zinc-600">{partyEmail}</p>
+        {partyEmail ? <p className="mt-1 text-zinc-600">{partyEmail}</p> : null}
         {partyPhone ? <p className="text-zinc-600">{partyPhone}</p> : null}
+        {partyAddress ? (
+          <p className="mt-1 whitespace-pre-wrap text-zinc-600">{partyAddress}</p>
+        ) : null}
       </div>
       <div className="rounded-lg border border-zinc-200 bg-white p-4 text-sm">
         <h2 className="font-medium text-zinc-900">Summary</h2>

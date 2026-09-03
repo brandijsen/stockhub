@@ -1,6 +1,5 @@
 import type { Request, Response } from "express";
 
-import { sendSupplierOrderCreatedEmail } from "../../../lib/supplier-order-mail";
 import { generateOrderCode } from "../../../lib/order-code";
 import { prisma } from "../../../lib/prisma";
 import type { AuthenticatedRequest } from "../../../middleware/require-auth";
@@ -63,23 +62,8 @@ export async function createSupplierOrder(
       });
     });
 
-    const serialized = serializeSupplierOrder(order);
-
-    const mailResult = await sendSupplierOrderCreatedEmail({
-      supplierEmail: supplier.email,
-      supplierName: supplier.name,
-      orderCode: order.code,
-      lines: order.lines.map((line) => ({
-        code: line.article.code,
-        name: line.article.name,
-        qtyOrdered: line.qtyOrdered,
-      })),
-    });
-
     res.status(201).json({
-      order: serialized,
-      supplierEmailSent: mailResult.ok,
-      ...(mailResult.ok ? {} : { supplierEmailError: mailResult.message }),
+      order: serializeSupplierOrder(order),
     });
   } catch (e) {
     console.error(e);

@@ -1,4 +1,5 @@
 import { api } from "@/lib/api-client";
+import { formatDateTime } from "@/lib/format-dates";
 
 export type CustomerOrderLine = {
   id: string;
@@ -12,6 +13,23 @@ export type CustomerOrderLine = {
   };
 };
 
+export type CustomerOrderListItem = {
+  id: string;
+  code: string;
+  status: "OPEN" | "PICKED_UP";
+  customer: {
+    id: string;
+    name: string;
+  };
+  createdBy: {
+    id: string;
+    name: string;
+  };
+  lineCount: number;
+  totalQuantity: number;
+  createdAt: string;
+};
+
 export type CustomerOrder = {
   id: string;
   code: string;
@@ -19,8 +37,9 @@ export type CustomerOrder = {
   customer: {
     id: string;
     name: string;
-    email: string;
+    email: string | null;
     phone: string | null;
+    address: string | null;
   };
   createdBy: {
     id: string;
@@ -35,7 +54,7 @@ export type CustomerOrder = {
 };
 
 export type CustomerOrdersListResponse = {
-  orders: CustomerOrder[];
+  orders: CustomerOrderListItem[];
   total: number;
   page: number;
   limit: number;
@@ -90,11 +109,9 @@ export async function confirmCustomerOrderPickup(
   return data.order;
 }
 
+
 export function formatCustomerOrderDate(iso: string): string {
-  return new Date(iso).toLocaleString(undefined, {
-    dateStyle: "medium",
-    timeStyle: "short",
-  });
+  return formatDateTime(iso);
 }
 
 export function customerOrderStatusBadgeClass(

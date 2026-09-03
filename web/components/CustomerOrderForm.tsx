@@ -7,7 +7,7 @@ import { type FormEvent, useEffect, useState } from "react";
 import { articleFormInputClass } from "@/components/article-form/input-styles";
 import { LoadingText } from "@/components/ContentSkeletons";
 import { apiErrorMessage } from "@/lib/api-client";
-import { fetchArticles, type Article } from "@/lib/articles";
+import { fetchArticles, type ArticleListItem } from "@/lib/articles";
 import { createCustomerOrder } from "@/lib/customer-orders";
 import { fetchCustomers, type Customer } from "@/lib/customers";
 
@@ -28,7 +28,7 @@ function newDraftLine(): DraftLine {
 export function CustomerOrderForm() {
   const router = useRouter();
   const [customers, setCustomers] = useState<Customer[]>([]);
-  const [articles, setArticles] = useState<Article[]>([]);
+  const [articles, setArticles] = useState<ArticleListItem[]>([]);
   const [loadingOptions, setLoadingOptions] = useState(true);
   const [optionsError, setOptionsError] = useState<string | null>(null);
 

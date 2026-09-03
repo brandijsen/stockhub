@@ -1,4 +1,5 @@
 import { api } from "@/lib/api-client";
+import { formatDateTime } from "@/lib/format-dates";
 import { staffRoleLabel } from "@/lib/staff";
 
 export type ProfileUser = {
@@ -67,4 +68,8 @@ export function formatMemberSince(iso: string): string {
     month: "long",
     year: "numeric",
   });
+}
+
+export function formatEmailVerified(iso: string): string {
+  return formatDateTime(iso);
 }

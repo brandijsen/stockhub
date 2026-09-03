@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import type { ProfileUser } from "@/lib/profile";
 import {
+  formatEmailVerified,
   formatMemberSince,
   profileRoleLabel,
 } from "@/lib/profile";
@@ -57,6 +58,9 @@ export function ProfileCard({ user, onUpdated }: ProfileCardProps) {
               </span>
               <span className="text-xs text-zinc-500">
                 Member since {formatMemberSince(user.createdAt)}
+              </span>
+              <span className="text-xs text-zinc-500">
+                Email verified {formatEmailVerified(user.emailVerified)}
               </span>
             </div>
           </div>

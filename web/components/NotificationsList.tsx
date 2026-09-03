@@ -11,6 +11,8 @@ import {
   formatNotificationTime,
   markNotificationRead,
   notificationHref,
+  notificationTypeBadgeClass,
+  notificationTypeLabel,
   type Notification,
 } from "@/lib/notifications";
 
@@ -135,9 +137,16 @@ export function NotificationsList() {
                 >
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
-                      <p className="font-medium text-zinc-900">
-                        {notification.title ?? "Notification"}
-                      </p>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="font-medium text-zinc-900">
+                          {notification.title ?? "Notification"}
+                        </p>
+                        <span
+                          className={`rounded-full px-2 py-0.5 text-xs font-medium ${notificationTypeBadgeClass(notification.type)}`}
+                        >
+                          {notificationTypeLabel(notification.type)}
+                        </span>
+                      </div>
                       <p className="mt-1 text-sm text-zinc-700">
                         {notification.body}
                       </p>

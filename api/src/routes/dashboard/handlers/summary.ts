@@ -1,7 +1,6 @@
 import type { Request, Response } from "express";
 
 import { prisma } from "../../../lib/prisma";
-import type { AuthenticatedRequest } from "../../../middleware/require-auth";
 
 export type DashboardSummary = {
   lowStockArticles: number;
@@ -9,15 +8,12 @@ export type DashboardSummary = {
   supplierOrdersChecking: number;
   supplierOrdersChecked: number;
   customerOrdersOpen: number;
-  unreadNotifications: number;
 };
 
 export async function getDashboardSummary(
   req: Request,
   res: Response,
 ): Promise<void> {
-  const session = (req as AuthenticatedRequest).sessionUser;
-
   try {
     const [
       lowStockArticles,
@@ -25,7 +21,6 @@ export async function getDashboardSummary(
       supplierOrdersChecking,
       supplierOrdersChecked,
       customerOrdersOpen,
-      unreadNotifications,
     ] = await Promise.all([
       prisma.article.count({
         where: {
@@ -37,9 +32,6 @@ export async function getDashboardSummary(
       prisma.supplierOrder.count({ where: { status: "ARRIVED_CHECKING" } }),
       prisma.supplierOrder.count({ where: { status: "CHECKED" } }),
       prisma.customerOrder.count({ where: { status: "OPEN" } }),
-      prisma.notification.count({
-        where: { userId: session.sub, readAt: null },
-      }),
     ]);
 
     const summary: DashboardSummary = {
@@ -48,7 +40,6 @@ export async function getDashboardSummary(
       supplierOrdersChecking,
       supplierOrdersChecked,
       customerOrdersOpen,
-      unreadNotifications,
     };
 
     res.json({ summary });

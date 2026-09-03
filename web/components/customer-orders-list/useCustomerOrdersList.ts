@@ -6,6 +6,7 @@ import { apiErrorMessage } from "@/lib/api-client";
 import {
   fetchCustomerOrders,
   type CustomerOrder,
+  type CustomerOrderListItem,
 } from "@/lib/customer-orders";
 
 const PAGE_SIZE = 10;
@@ -18,7 +19,7 @@ export function useCustomerOrdersList(
   options: UseCustomerOrdersListOptions = {},
 ) {
   const { status } = options;
-  const [orders, setOrders] = useState<CustomerOrder[]>([]);
+  const [orders, setOrders] = useState<CustomerOrderListItem[]>([]);
   const [page, setPage] = useState(1);
   const [appliedStatus, setAppliedStatus] = useState(status);
   const pageToLoad = status === appliedStatus ? page : 1;

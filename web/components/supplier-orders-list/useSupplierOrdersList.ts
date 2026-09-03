@@ -6,7 +6,7 @@ import { apiErrorMessage } from "@/lib/api-client";
 import {
   fetchSupplierOrders,
   SUPPLIER_ORDERS_PAGE_SIZE,
-  type SupplierOrder,
+  type SupplierOrderListItem,
   type SupplierOrderStatus,
 } from "@/lib/supplier-orders";
 
@@ -16,7 +16,7 @@ type UseSupplierOrdersListOptions = {
 
 export function useSupplierOrdersList(options: UseSupplierOrdersListOptions = {}) {
   const { status } = options;
-  const [orders, setOrders] = useState<SupplierOrder[]>([]);
+  const [orders, setOrders] = useState<SupplierOrderListItem[]>([]);
   const [page, setPage] = useState(1);
   const [appliedStatus, setAppliedStatus] = useState(status);
   const pageToLoad = status === appliedStatus ? page : 1;

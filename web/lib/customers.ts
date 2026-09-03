@@ -3,7 +3,7 @@ import { api } from "@/lib/api-client";
 export type Customer = {
   id: string;
   name: string;
-  email: string;
+  email: string | null;
   phone: string | null;
   address: string | null;
   orderCount: number;
@@ -38,7 +38,7 @@ export function emptyCustomerForm(): CustomerFormValues {
 export function customerToFormValues(customer: Customer): CustomerFormValues {
   return {
     name: customer.name,
-    email: customer.email,
+    email: customer.email ?? "",
     phone: customer.phone ?? "",
     address: customer.address ?? "",
   };
@@ -47,7 +47,7 @@ export function customerToFormValues(customer: Customer): CustomerFormValues {
 export function formValuesToPayload(values: CustomerFormValues) {
   return {
     name: values.name.trim(),
-    email: values.email.trim(),
+    email: values.email.trim() || null,
     phone: values.phone.trim() || null,
     address: values.address.trim() || null,
   };

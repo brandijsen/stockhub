@@ -3,7 +3,7 @@
 import Link from "next/link";
 
 import type { StaffUser } from "@/lib/staff";
-import { staffStatusLabel } from "@/lib/staff";
+import { formatStaffLastSeen, staffStatusLabel } from "@/lib/staff";
 
 import { StaffRoleCell } from "./StaffRoleCell";
 
@@ -55,11 +55,18 @@ export function StaffListTable({
                 />
               </td>
               <td className="px-3 py-2">
-                <span
-                  className={`rounded-full px-2 py-0.5 text-xs font-medium ${statusBadgeClass(user.online)}`}
-                >
-                  {staffStatusLabel(user.online)}
-                </span>
+                <div className="flex flex-col gap-0.5">
+                  <span
+                    className={`w-fit rounded-full px-2 py-0.5 text-xs font-medium ${statusBadgeClass(user.online)}`}
+                  >
+                    {staffStatusLabel(user.online)}
+                  </span>
+                  {!user.online && user.lastSeenAt ? (
+                    <span className="text-xs text-zinc-500">
+                      Last seen {formatStaffLastSeen(user.lastSeenAt)}
+                    </span>
+                  ) : null}
+                </div>
               </td>
               <td className="px-3 py-2">
                 {user.id === currentUserId ? (

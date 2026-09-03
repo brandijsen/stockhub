@@ -35,8 +35,9 @@ export type SerializedSupplierOrder = {
   supplier: {
     id: string;
     name: string;
-    email: string;
+    email: string | null;
     phone: string | null;
+    address: string | null;
   };
   createdBy: SerializedSupplierOrderUser;
   lines: SerializedSupplierOrderLine[];
@@ -135,6 +136,7 @@ export function serializeSupplierOrder(
       name: order.supplier.name,
       email: order.supplier.email,
       phone: order.supplier.phone,
+      address: order.supplier.address,
     },
     createdBy: {
       id: order.createdBy.id,
@@ -156,5 +158,75 @@ export function serializeSupplierOrder(
       : null,
     createdAt: order.createdAt.toISOString(),
     updatedAt: order.updatedAt.toISOString(),
+  };
+}
+
+export type SerializedSupplierOrderListItem = {
+  id: string;
+  code: string;
+  status: string;
+  supplier: {
+    id: string;
+    name: string;
+  };
+  createdBy: {
+    id: string;
+    name: string;
+  };
+  lineCount: number;
+  totalQtyOrdered: number;
+  createdAt: string;
+};
+
+type SupplierOrderListWithRelations = SupplierOrder & {
+  supplier: Pick<Supplier, "id" | "name">;
+  createdBy: Pick<User, "id" | "firstName" | "lastName">;
+  lines: Pick<SupplierOrderLine, "qtyOrdered">[];
+};
+
+export const supplierOrderListInclude = {
+  supplier: {
+    select: {
+      id: true,
+      name: true,
+    },
+  },
+  createdBy: {
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+    },
+  },
+  lines: {
+    select: {
+      qtyOrdered: true,
+    },
+  },
+} as const;
+
+export function serializeSupplierOrderListItem(
+  order: SupplierOrderListWithRelations,
+): SerializedSupplierOrderListItem {
+  const totalQtyOrdered = order.lines.reduce(
+    (sum, line) => sum + line.qtyOrdered,
+    0,
+  );
+
+  return {
+    id: order.id,
+    code: order.code,
+    status: order.status,
+    supplier: {
+      id: order.supplier.id,
+      name: order.supplier.name,
+    },
+    createdBy: {
+      id: order.createdBy.id,
+      name: userDisplayName(order.createdBy),
+    },
+    lineCount: order.lines.length,
+    totalQtyOrdered,
+    createdAt: order.createdAt.toISOString(),
   };
 }

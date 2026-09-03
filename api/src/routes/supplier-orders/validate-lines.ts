@@ -31,18 +31,3 @@ export async function validateSupplierOrderLines(
 
   return { ok: true, articles };
 }
-
-export function orderLinesForEmail(
-  lines: OrderLineInput[],
-  articles: { id: string; code: string; name: string }[],
-): { code: string; name: string; qtyOrdered: number }[] {
-  const byId = new Map(articles.map((article) => [article.id, article]));
-  return lines.map((line) => {
-    const article = byId.get(line.articleId)!;
-    return {
-      code: article.code,
-      name: article.name,
-      qtyOrdered: line.qtyOrdered,
-    };
-  });
-}

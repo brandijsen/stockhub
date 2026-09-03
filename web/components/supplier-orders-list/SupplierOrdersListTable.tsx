@@ -5,11 +5,11 @@ import {
   formatSupplierOrderDate,
   supplierOrderStatusBadgeClass,
   supplierOrderStatusLabel,
-  type SupplierOrder,
+  type SupplierOrderListItem,
 } from "@/lib/supplier-orders";
 
 type SupplierOrdersListTableProps = {
-  orders: SupplierOrder[];
+  orders: SupplierOrderListItem[];
 };
 
 export function SupplierOrdersListTable({

@@ -10,10 +10,15 @@ export type ArticleListExportFilters = {
   lowStockOnly?: boolean;
 };
 
+export type ArticlesImportError = {
+  row: number;
+  message: string;
+};
+
 export type ArticlesImportResult = {
   created: number;
   updated: number;
-  errors: { row: number; message: string }[];
+  errors: ArticlesImportError[];
 };
 
 function buildExportParams(
@@ -85,4 +90,25 @@ export async function importArticlesExcel(
     form,
   );
   return data;
+}
+
+export function downloadArticlesImportErrorsCsv(
+  errors: ArticlesImportError[],
+  filename = "articles-import-errors.csv",
+): void {
+  const lines = [
+    "row,message",
+    ...errors.map(
+      (entry) => `${entry.row},"${entry.message.replace(/"/g, '""')}"`,
+    ),
+  ];
+  const blob = new Blob([lines.join("\n")], {
+    type: "text/csv;charset=utf-8",
+  });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(url);
 }

@@ -74,6 +74,64 @@ export function serializeArticle(article: ArticleWithRelations) {
   };
 }
 
+type ArticleListWithRelations = Article & {
+  brand: Pick<Brand, "id" | "name"> | null;
+  category: Pick<Category, "id" | "name"> | null;
+};
+
+export type SerializedArticleListItem = {
+  id: string;
+  code: string;
+  name: string;
+  stock: number;
+  minThreshold: number;
+  lowStock: boolean;
+  isActive: boolean;
+  price: number | null;
+  imageUrl: string | null;
+  brand: { id: string; name: string } | null;
+  category: { id: string; name: string } | null;
+};
+
+export const articleListInclude = {
+  brand: {
+    select: {
+      id: true,
+      name: true,
+    },
+  },
+  category: {
+    select: {
+      id: true,
+      name: true,
+    },
+  },
+} as const;
+
+export function serializeArticleListItem(
+  article: ArticleListWithRelations,
+): SerializedArticleListItem {
+  return {
+    id: article.id,
+    code: article.code,
+    name: article.name,
+    stock: article.stock,
+    minThreshold: article.minThreshold,
+    lowStock: article.stock < article.minThreshold,
+    isActive: article.isActive,
+    price: decimalToNumber(article.price),
+    imageUrl: article.imageUrl
+      ? articleImagePublicPath(article.id)
+      : null,
+    brand: article.brand
+      ? { id: article.brand.id, name: article.brand.name }
+      : null,
+    category: article.category
+      ? { id: article.category.id, name: article.category.name }
+      : null,
+  };
+}
+
 export const articleInclude = {
   brand: true,
   category: true,

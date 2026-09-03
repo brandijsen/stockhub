@@ -71,7 +71,7 @@ export function SuppliersListTable({
               <td className="px-3 py-2 font-medium text-zinc-900">
                 {supplier.name}
               </td>
-              <td className="px-3 py-2 text-zinc-600">{supplier.email}</td>
+              <td className="px-3 py-2 text-zinc-600">{supplier.email ?? "—"}</td>
               <td className="whitespace-nowrap px-3 py-2 text-zinc-600">
                 {supplier.phone ?? "—"}
               </td>

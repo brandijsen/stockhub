@@ -38,7 +38,6 @@ export function CustomerForm({
 
   const canSubmit =
     values.name.trim().length > 0 &&
-    values.email.trim().length > 0 &&
     !saving;
 
   async function handleSubmit(event: FormEvent) {
@@ -100,12 +99,11 @@ export function CustomerForm({
               htmlFor="customer-email"
               className="block text-sm font-medium text-zinc-600"
             >
-              Email
+              Email <span className="font-normal text-zinc-400">(optional)</span>
             </label>
             <input
               id="customer-email"
               type="email"
-              required
               autoComplete="email"
               value={values.email}
               disabled={saving}

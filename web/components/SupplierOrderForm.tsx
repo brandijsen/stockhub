@@ -8,7 +8,7 @@ import { articleFormInputClass } from "@/components/article-form/input-styles";
 import { LoadingText } from "@/components/ContentSkeletons";
 import { Spinner } from "@/components/Spinner";
 import { apiErrorMessage } from "@/lib/api-client";
-import { fetchArticles, type Article } from "@/lib/articles";
+import { fetchArticles, type ArticleListItem } from "@/lib/articles";
 import { createSupplierOrder, updateSupplierOrder, type SupplierOrder } from "@/lib/supplier-orders";
 import { fetchSuppliers, type Supplier } from "@/lib/suppliers";
 
@@ -26,7 +26,7 @@ function newDraftLine(): DraftLine {
   };
 }
 
-function sortArticlesForPicker(articles: Article[]): Article[] {
+function sortArticlesForPicker(articles: ArticleListItem[]): ArticleListItem[] {
   return [...articles].sort((a, b) => {
     if (a.lowStock !== b.lowStock) {
       return a.lowStock ? -1 : 1;
@@ -39,7 +39,7 @@ export function SupplierOrderForm({ order }: { order?: SupplierOrder }) {
   const isEdit = order != null;
   const router = useRouter();
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
-  const [articles, setArticles] = useState<Article[]>([]);
+  const [articles, setArticles] = useState<ArticleListItem[]>([]);
   const [loadingOptions, setLoadingOptions] = useState(true);
   const [optionsError, setOptionsError] = useState<string | null>(null);
 
@@ -203,7 +203,9 @@ export function SupplierOrderForm({ order }: { order?: SupplierOrder }) {
           <option value="">Select supplier…</option>
           {suppliers.map((supplier) => (
             <option key={supplier.id} value={supplier.id}>
-              {supplier.name} ({supplier.email})
+              {supplier.email
+                ? `${supplier.name} (${supplier.email})`
+                : supplier.name}
             </option>
           ))}
         </select>

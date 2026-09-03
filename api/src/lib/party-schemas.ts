@@ -14,10 +14,24 @@ export const optionalText = (max: number) =>
       return value;
     });
 
+export const optionalEmail = z
+  .string()
+  .trim()
+  .max(320)
+  .optional()
+  .nullable()
+  .transform((value) => {
+    if (value == null || value === "") {
+      return null;
+    }
+    return value;
+  })
+  .pipe(z.union([z.null(), z.string().email()]));
+
 export const createPartySchema = z
   .object({
     name: z.string().trim().min(1).max(256),
-    email: z.string().trim().email().max(320),
+    email: optionalEmail,
     phone: optionalText(64),
     address: optionalText(5000),
   })

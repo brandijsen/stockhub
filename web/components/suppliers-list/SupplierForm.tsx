@@ -38,7 +38,6 @@ export function SupplierForm({
 
   const canSubmit =
     values.name.trim().length > 0 &&
-    values.email.trim().length > 0 &&
     !saving;
 
   async function handleSubmit(event: FormEvent) {
@@ -95,12 +94,11 @@ export function SupplierForm({
               htmlFor="supplier-email"
               className="block text-sm font-medium text-zinc-600"
             >
-              Email
+              Email <span className="font-normal text-zinc-400">(optional)</span>
             </label>
             <input
               id="supplier-email"
               type="email"
-              required
               autoComplete="email"
               value={values.email}
               disabled={saving}

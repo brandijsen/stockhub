@@ -230,6 +230,9 @@ export function ArticleDetail({ articleId, canManage }: ArticleDetailProps) {
               "—"
             )}
           </DetailRow>
+          <DetailRow label="Created">
+            {formatArticleDate(article.createdAt)}
+          </DetailRow>
           <DetailRow label="Updated">
             {formatArticleDate(article.updatedAt)}
           </DetailRow>

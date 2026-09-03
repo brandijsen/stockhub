@@ -1,4 +1,5 @@
 import { api } from "@/lib/api-client";
+import { formatDateTime } from "@/lib/format-dates";
 
 export const SUPPLIER_ORDERS_PAGE_SIZE = 10;
 
@@ -25,6 +26,23 @@ export type SupplierOrderLine = {
   };
 };
 
+export type SupplierOrderListItem = {
+  id: string;
+  code: string;
+  status: SupplierOrderStatus;
+  supplier: {
+    id: string;
+    name: string;
+  };
+  createdBy: {
+    id: string;
+    name: string;
+  };
+  lineCount: number;
+  totalQtyOrdered: number;
+  createdAt: string;
+};
+
 export type SupplierOrder = {
   id: string;
   code: string;
@@ -32,8 +50,9 @@ export type SupplierOrder = {
   supplier: {
     id: string;
     name: string;
-    email: string;
+    email: string | null;
     phone: string | null;
+    address: string | null;
   };
   createdBy: {
     id: string;
@@ -56,7 +75,7 @@ export type SupplierOrder = {
 };
 
 export type SupplierOrdersListResponse = {
-  orders: SupplierOrder[];
+  orders: SupplierOrderListItem[];
   total: number;
   page: number;
   limit: number;
@@ -72,26 +91,16 @@ export type CreateSupplierOrderLineInput = {
   qtyOrdered: number;
 };
 
-export type CreateSupplierOrderResponse = {
-  order: SupplierOrder;
-  supplierEmailSent: boolean;
-  supplierEmailError?: string;
-};
+export type CreateSupplierOrderResponse = SupplierOrderResponse;
 
-export type CloseSupplierOrderResponse = {
-  order: SupplierOrder;
-  supplierEmailSent: boolean;
-  supplierEmailError?: string;
-};
+export type CloseSupplierOrderResponse = SupplierOrderResponse;
 
 export type CloseSupplierOrderOutcome = "SUCCEEDED" | "DONE";
 
-export type UpdateSupplierOrderResponse = CreateSupplierOrderResponse;
+export type UpdateSupplierOrderResponse = SupplierOrderResponse;
 
 export type DeleteSupplierOrderResponse = {
   ok: true;
-  supplierEmailSent: boolean;
-  supplierEmailError?: string;
 };
 
 export function supplierOrderStatusLabel(status: SupplierOrderStatus): string {
@@ -128,11 +137,9 @@ export function supplierOrderStatusBadgeClass(status: SupplierOrderStatus): stri
   }
 }
 
+
 export function formatSupplierOrderDate(iso: string): string {
-  return new Date(iso).toLocaleString(undefined, {
-    dateStyle: "medium",
-    timeStyle: "short",
-  });
+  return formatDateTime(iso);
 }
 
 export async function fetchSupplierOrders(

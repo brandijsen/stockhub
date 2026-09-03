@@ -5,11 +5,11 @@ import {
   customerOrderStatusBadgeClass,
   customerOrderStatusLabel,
   formatCustomerOrderDate,
-  type CustomerOrder,
+  type CustomerOrderListItem,
 } from "@/lib/customer-orders";
 
 type CustomerOrdersListTableProps = {
-  orders: CustomerOrder[];
+  orders: CustomerOrderListItem[];
 };
 
 export function CustomerOrdersListTable({

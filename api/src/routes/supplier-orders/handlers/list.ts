@@ -3,8 +3,8 @@ import type { Request, Response } from "express";
 import { prisma } from "../../../lib/prisma";
 import { listSupplierOrdersQuerySchema } from "../schemas";
 import {
-  serializeSupplierOrder,
-  supplierOrderInclude,
+  serializeSupplierOrderListItem,
+  supplierOrderListInclude,
 } from "../serialize";
 
 export async function listSupplierOrders(
@@ -28,7 +28,7 @@ export async function listSupplierOrders(
     const [orders, total] = await Promise.all([
       prisma.supplierOrder.findMany({
         where,
-        include: supplierOrderInclude,
+        include: supplierOrderListInclude,
         orderBy: { createdAt: "desc" },
         skip,
         take: limit,
@@ -39,7 +39,7 @@ export async function listSupplierOrders(
     const totalPages = total === 0 ? 0 : Math.ceil(total / limit);
 
     res.json({
-      orders: orders.map(serializeSupplierOrder),
+      orders: orders.map(serializeSupplierOrderListItem),
       total,
       page,
       limit,

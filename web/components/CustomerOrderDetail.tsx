@@ -106,6 +106,8 @@ export function CustomerOrderDetail({ orderId }: CustomerOrderDetailProps) {
         statusBadgeClass={customerOrderStatusBadgeClass(order.status)}
         createdAt={order.createdAt}
         createdByName={order.createdBy.name}
+        createdByEmail={order.createdBy.email}
+        updatedAt={order.updatedAt}
         formatDate={formatCustomerOrderDate}
         actions={
           isOpen ? (
@@ -132,6 +134,7 @@ export function CustomerOrderDetail({ orderId }: CustomerOrderDetailProps) {
         partyName={order.customer.name}
         partyEmail={order.customer.email}
         partyPhone={order.customer.phone}
+        partyAddress={order.customer.address}
         lineCount={order.lineCount}
         totalQty={order.totalQuantity}
         totalQtyLabel="units"

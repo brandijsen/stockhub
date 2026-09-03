@@ -97,7 +97,7 @@ export function SupplierOrderDetail({
     }
 
     const confirmed = window.confirm(
-      `Cancel order for ${order.supplier.name}? The supplier will be notified by email when mail is configured.`,
+      `Cancel order for ${order.supplier.name}? This cannot be undone.`,
     );
     if (!confirmed) {
       return;
@@ -149,6 +149,8 @@ export function SupplierOrderDetail({
         statusBadgeClass={supplierOrderStatusBadgeClass(order.status)}
         createdAt={order.createdAt}
         createdByName={order.createdBy.name}
+        createdByEmail={order.createdBy.email}
+        updatedAt={order.updatedAt}
         formatDate={formatSupplierOrderDate}
         extraMeta={
           <>
@@ -162,6 +164,9 @@ export function SupplierOrderDetail({
                 Closed {formatSupplierOrderDate(order.closedAt)}
                 {order.closedBy ? ` by ${order.closedBy.name}` : ""}
               </p>
+            ) : null}
+            {order.closedBy?.email ? (
+              <p className="text-sm text-zinc-500">{order.closedBy.email}</p>
             ) : null}
           </>
         }
@@ -210,6 +215,7 @@ export function SupplierOrderDetail({
         partyName={order.supplier.name}
         partyEmail={order.supplier.email}
         partyPhone={order.supplier.phone}
+        partyAddress={order.supplier.address}
         lineCount={order.lineCount}
         totalQty={order.totalQtyOrdered}
         totalQtyLabel="units ordered"

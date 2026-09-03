@@ -1,11 +1,12 @@
 import { api } from "@/lib/api-client";
+import { formatDateTime } from "@/lib/format-dates";
 
 export type CatalogBrand = { id: string; name: string };
 
 export const ARTICLES_PAGE_SIZE = 20;
 
 export type ArticlesListResponse = {
-  articles: Article[];
+  articles: ArticleListItem[];
   total: number;
   page: number;
   limit: number;
@@ -35,20 +36,24 @@ export type ArticleAttributeValue = {
   option: { id: string; value: string; label: string } | null;
 };
 
-export type Article = {
+export type ArticleListItem = {
   id: string;
   code: string;
   name: string;
-  description: string | null;
   stock: number;
   minThreshold: number;
   lowStock: boolean;
   isActive: boolean;
-  barcode: string | null;
   price: number | null;
-  weightGrams: number | null;
   imageUrl: string | null;
   brand: CatalogBrand | null;
+  category: Pick<CatalogCategory, "id" | "name"> | null;
+};
+
+export type Article = ArticleListItem & {
+  description: string | null;
+  barcode: string | null;
+  weightGrams: number | null;
   category: CatalogCategory | null;
   attributeValues: ArticleAttributeValue[];
   createdAt: string;
@@ -161,11 +166,9 @@ export function emptyCustomAttributeRow(): ArticleCustomAttribute {
   return { name: "", value: "" };
 }
 
+
 export function formatArticleDate(iso: string): string {
-  return new Date(iso).toLocaleString(undefined, {
-    dateStyle: "medium",
-    timeStyle: "short",
-  });
+  return formatDateTime(iso);
 }
 
 export async function fetchArticles(params: {

@@ -1,4 +1,5 @@
 import { api } from "@/lib/api-client";
+import { formatDateTime } from "@/lib/format-dates";
 
 export type StaffUser = {
   id: string;
@@ -30,6 +31,10 @@ export function staffRoleLabel(role: string): string {
 
 export function staffStatusLabel(online: boolean): string {
   return online ? "Online" : "Offline";
+}
+
+export function formatStaffLastSeen(iso: string): string {
+  return formatDateTime(iso);
 }
 
 export type UpdateStaffRoleResponse = {

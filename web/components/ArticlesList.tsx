@@ -5,6 +5,8 @@ import { useSearchParams } from "next/navigation";
 import { LoadingText } from "@/components/ContentSkeletons";
 import { ListFilterBanner } from "@/components/ListFilterBanner";
 
+import { downloadArticlesImportErrorsCsv } from "@/lib/article-excel";
+
 import { ArticlesListFilters } from "./articles-list/ArticlesListFilters";
 import { ArticlesListHeader } from "./articles-list/ArticlesListHeader";
 import { ListPagination } from "@/components/ListPagination";
@@ -69,6 +71,33 @@ export function ArticlesList({ canManage }: ArticlesListProps) {
         <p className="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
           {list.importSummary}
         </p>
+      ) : null}
+
+      {list.importErrors.length > 0 ? (
+        <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="font-medium">
+              {list.importErrors.length} row error
+              {list.importErrors.length === 1 ? "" : "s"}
+            </p>
+            <button
+              type="button"
+              onClick={() =>
+                downloadArticlesImportErrorsCsv(list.importErrors)
+              }
+              className="text-sm font-medium text-amber-900 underline underline-offset-2 hover:text-amber-950"
+            >
+              Download CSV
+            </button>
+          </div>
+          <ul className="mt-3 max-h-48 space-y-1 overflow-y-auto font-mono text-xs">
+            {list.importErrors.map((entry) => (
+              <li key={`${entry.row}-${entry.message}`}>
+                Row {entry.row}: {entry.message}
+              </li>
+            ))}
+          </ul>
+        </div>
       ) : null}
 
       {list.error ? (

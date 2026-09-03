@@ -4,10 +4,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   downloadArticlesExport,
   importArticlesExcel,
+  type ArticlesImportError,
 } from "@/lib/article-excel";
 import {
   ARTICLES_PAGE_SIZE,
-  type Article,
+  type ArticleListItem,
   type ArticlesListResponse,
   type CatalogBrand,
   type CatalogCategory,
@@ -22,7 +23,7 @@ type UseArticlesListOptions = {
 };
 
 export function useArticlesList(options: UseArticlesListOptions = {}) {
-  const [articles, setArticles] = useState<Article[]>([]);
+  const [articles, setArticles] = useState<ArticleListItem[]>([]);
   const [categories, setCategories] = useState<CatalogCategory[]>([]);
   const [brands, setBrands] = useState<CatalogBrand[]>([]);
   const [searchInput, setSearchInput] = useState("");
@@ -44,6 +45,7 @@ export function useArticlesList(options: UseArticlesListOptions = {}) {
   const [exporting, setExporting] = useState(false);
   const [importing, setImporting] = useState(false);
   const [importSummary, setImportSummary] = useState<string | null>(null);
+  const [importErrors, setImportErrors] = useState<ArticlesImportError[]>([]);
   const importInputRef = useRef<HTMLInputElement>(null);
 
   const filters: ArticleListFilters = useMemo(
@@ -205,23 +207,15 @@ export function useArticlesList(options: UseArticlesListOptions = {}) {
     setImporting(true);
     setError(null);
     setImportSummary(null);
+    setImportErrors([]);
     try {
       const result = await importArticlesExcel(file);
-      const errorCount = result.errors.length;
       setImportSummary(
         `Import finished: ${result.created} created, ${result.updated} updated${
-          errorCount ? `, ${errorCount} row error(s)` : ""
+          result.errors.length ? `, ${result.errors.length} row error(s)` : ""
         }.`,
       );
-      if (errorCount) {
-        setError(
-          result.errors
-            .slice(0, 5)
-            .map((entry) => `Row ${entry.row}: ${entry.message}`)
-            .join(" · ") +
-            (errorCount > 5 ? ` · …and ${errorCount - 5} more` : ""),
-        );
-      }
+      setImportErrors(result.errors);
       setPage(1);
       await loadArticles(1, filters);
     } catch (err) {
@@ -275,6 +269,7 @@ export function useArticlesList(options: UseArticlesListOptions = {}) {
     exporting,
     importing,
     importSummary,
+    importErrors,
     importInputRef,
     hasFilters,
     rangeStart,

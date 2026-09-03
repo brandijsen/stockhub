@@ -31,8 +31,9 @@ export type SerializedCustomerOrder = {
   customer: {
     id: string;
     name: string;
-    email: string;
+    email: string | null;
     phone: string | null;
+    address: string | null;
   };
   createdBy: SerializedCustomerOrderUser;
   lines: SerializedCustomerOrderLine[];
@@ -47,7 +48,7 @@ type OrderLineWithArticle = CustomerOrderLine & {
 };
 
 export type CustomerOrderWithRelations = CustomerOrder & {
-  customer: Pick<Customer, "id" | "name" | "email" | "phone">;
+  customer: Pick<Customer, "id" | "name" | "email" | "phone" | "address">;
   createdBy: Pick<User, "id" | "firstName" | "lastName" | "email">;
   lines: OrderLineWithArticle[];
 };
@@ -86,6 +87,7 @@ export function serializeCustomerOrder(
       name: order.customer.name,
       email: order.customer.email,
       phone: order.customer.phone,
+      address: order.customer.address,
     },
     createdBy: serializeUser(order.createdBy),
     lines,
@@ -103,6 +105,7 @@ export const customerOrderInclude = {
       name: true,
       email: true,
       phone: true,
+      address: true,
     },
   },
   createdBy: {
@@ -127,3 +130,73 @@ export const customerOrderInclude = {
     orderBy: { article: { code: "asc" } },
   },
 } as const;
+
+export type SerializedCustomerOrderListItem = {
+  id: string;
+  code: string;
+  status: string;
+  customer: {
+    id: string;
+    name: string;
+  };
+  createdBy: {
+    id: string;
+    name: string;
+  };
+  lineCount: number;
+  totalQuantity: number;
+  createdAt: string;
+};
+
+type CustomerOrderListWithRelations = CustomerOrder & {
+  customer: Pick<Customer, "id" | "name">;
+  createdBy: Pick<User, "id" | "firstName" | "lastName">;
+  lines: Pick<CustomerOrderLine, "quantity">[];
+};
+
+export const customerOrderListInclude = {
+  customer: {
+    select: {
+      id: true,
+      name: true,
+    },
+  },
+  createdBy: {
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+    },
+  },
+  lines: {
+    select: {
+      quantity: true,
+    },
+  },
+} as const;
+
+export function serializeCustomerOrderListItem(
+  order: CustomerOrderListWithRelations,
+): SerializedCustomerOrderListItem {
+  const totalQuantity = order.lines.reduce(
+    (sum, line) => sum + line.quantity,
+    0,
+  );
+
+  return {
+    id: order.id,
+    code: order.code,
+    status: order.status,
+    customer: {
+      id: order.customer.id,
+      name: order.customer.name,
+    },
+    createdBy: {
+      id: order.createdBy.id,
+      name: `${order.createdBy.firstName} ${order.createdBy.lastName}`.trim(),
+    },
+    lineCount: order.lines.length,
+    totalQuantity,
+    createdAt: order.createdAt.toISOString(),
+  };
+}

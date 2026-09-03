@@ -3,7 +3,7 @@ import type { Customer } from "@prisma/client";
 export type SerializedCustomer = {
   id: string;
   name: string;
-  email: string;
+  email: string | null;
   phone: string | null;
   address: string | null;
   orderCount: number;

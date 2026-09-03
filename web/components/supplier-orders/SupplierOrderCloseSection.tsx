@@ -99,8 +99,7 @@ export function SupplierOrderCloseSection({
           <span>
             <span className="block font-medium text-zinc-900">Succeeded</span>
             <span className="block text-sm text-zinc-600">
-              Everything matches checking. Stock is loaded automatically and the
-              supplier receives a confirmation email.
+              Everything matches checking. Stock is loaded automatically.
             </span>
           </span>
         </label>
@@ -120,8 +119,7 @@ export function SupplierOrderCloseSection({
               Done with issues
             </span>
             <span className="block text-sm text-zinc-600">
-              Discrepancies remain. No automatic stock load; supplier gets an
-              issue email.
+              Discrepancies remain. No automatic stock load.
             </span>
           </span>
         </label>
@@ -143,7 +141,7 @@ export function SupplierOrderCloseSection({
             disabled={saving}
             onChange={(event) => setAdminCloseNote(event.target.value)}
             className={`mt-1 ${articleFormInputClass}`}
-            placeholder="Describe the discrepancy for the supplier and the team."
+            placeholder="Describe the discrepancy for the team."
           />
         </div>
       ) : (

@@ -3,7 +3,7 @@ import type { Request, Response } from "express";
 import { prisma } from "../../../lib/prisma";
 import { listArticlesQuerySchema } from "../schemas";
 import { buildArticleListWhere } from "../list-where";
-import { articleInclude, serializeArticle } from "../serialize";
+import { articleListInclude, serializeArticleListItem } from "../serialize";
 
 export async function listArticles(req: Request, res: Response): Promise<void> {
   const parsed = listArticlesQuerySchema.safeParse(req.query);
@@ -23,7 +23,7 @@ export async function listArticles(req: Request, res: Response): Promise<void> {
     const [articles, total] = await Promise.all([
       prisma.article.findMany({
         where,
-        include: articleInclude,
+        include: articleListInclude,
         orderBy: [{ name: "asc" }, { code: "asc" }],
         skip,
         take: limit,
@@ -34,7 +34,7 @@ export async function listArticles(req: Request, res: Response): Promise<void> {
     const totalPages = total === 0 ? 0 : Math.ceil(total / limit);
 
     res.json({
-      articles: articles.map(serializeArticle),
+      articles: articles.map(serializeArticleListItem),
       total,
       page,
       limit,
