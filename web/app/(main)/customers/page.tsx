@@ -1,4 +1,5 @@
 import { CustomersList } from "@/components/CustomersList";
+import { PageContainer } from "@/components/PageContainer";
 import { canManageAdminCatalog } from "@/lib/roles";
 import { getSession } from "@/lib/session";
 
@@ -7,8 +8,8 @@ export default async function CustomersPage() {
   const canManage = canManageAdminCatalog(user?.role);
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8">
+    <PageContainer>
       <CustomersList canManage={canManage} />
-    </div>
+    </PageContainer>
   );
 }

@@ -1,7 +1,33 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect } from "react";
+
+import {
+  primaryButtonClassName,
+  secondaryButtonClassName,
+} from "@/components/PageContainer";
+import { StatusPageLayout } from "@/components/StatusPageLayout";
+
+const AUTHENTICATED_PREFIXES = [
+  "/dashboard",
+  "/articles",
+  "/customers",
+  "/customer-orders",
+  "/suppliers",
+  "/supplier-orders",
+  "/staff",
+  "/messages",
+  "/notifications",
+  "/profile",
+];
+
+function isAuthenticatedArea(pathname: string): boolean {
+  return AUTHENTICATED_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+  );
+}
 
 export default function ErrorPage({
   error,
@@ -10,32 +36,46 @@ export default function ErrorPage({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const pathname = usePathname();
+  const inApp = isAuthenticatedArea(pathname);
+  const brandHref = inApp ? "/dashboard" : "/";
+
   useEffect(() => {
     console.error(error);
   }, [error]);
 
   return (
-    <div className="flex min-h-[50vh] flex-col items-center justify-center px-4 py-16">
-      <h1 className="text-xl font-semibold text-zinc-900">Something went wrong</h1>
-      <p className="mt-2 max-w-md text-center text-sm text-zinc-600">
-        An unexpected error occurred while loading this page. You can try again or go
-        back to the home page.
-      </p>
-      <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-        <button
-          type="button"
-          onClick={() => reset()}
-          className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800"
-        >
-          Try again
-        </button>
-        <Link
-          href="/"
-          className="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-800 hover:bg-zinc-50"
-        >
-          Home
-        </Link>
-      </div>
-    </div>
+    <StatusPageLayout
+      brandHref={brandHref}
+      code="Error"
+      title="Something went wrong"
+      description={
+        <>
+          <p>
+            An unexpected error occurred while loading this page. You can try
+            again or return to a safe place.
+          </p>
+          {error.digest ? (
+            <p className="mt-3 font-mono text-xs text-zinc-500">
+              Reference: {error.digest}
+            </p>
+          ) : null}
+        </>
+      }
+    >
+      <button
+        type="button"
+        onClick={() => reset()}
+        className={primaryButtonClassName}
+      >
+        Try again
+      </button>
+      <Link
+        href={brandHref}
+        className={secondaryButtonClassName}
+      >
+        {inApp ? "Go to dashboard" : "Back to home"}
+      </Link>
+    </StatusPageLayout>
   );
 }

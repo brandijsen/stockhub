@@ -7,6 +7,11 @@ import { Suspense, useCallback, useEffect, useState, startTransition } from "rea
 
 import { Spinner } from "@/components/Spinner";
 import {
+  AuthPageContainer,
+  pageTitleClassName,
+  primaryButtonClassName,
+} from "@/components/PageContainer";
+import {
   REGISTER_DEV_VERIFY_URL_KEY,
   REGISTER_PENDING_EMAIL_KEY,
   REGISTER_VERIFY_RESEND_TOKEN_KEY,
@@ -112,17 +117,17 @@ function CheckEmailInner() {
 
   if (!email) {
     return (
-      <div className="mx-auto flex min-h-[40vh] max-w-md flex-col justify-center px-4 py-12">
+      <AuthPageContainer minHeight="short">
         <Spinner className="mx-auto h-9 w-9 text-zinc-700" />
-      </div>
+      </AuthPageContainer>
     );
   }
 
   const showResend = Boolean(resendToken);
 
   return (
-    <div className="mx-auto flex min-h-[60vh] max-w-md flex-col justify-center px-4 py-12">
-      <h1 className="text-2xl font-semibold text-zinc-900">Check your email</h1>
+    <AuthPageContainer>
+      <h1 className={pageTitleClassName}>Check your email</h1>
 
       {justResent ? (
         <p className="mt-3 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
@@ -179,24 +184,15 @@ function CheckEmailInner() {
       ) : null}
 
       {showResend ? (
-        <div className="relative mt-6">
-          {resendPending ? (
-            <div
-              className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-white/75 backdrop-blur-[1px]"
-              aria-hidden
-            >
-              <Spinner className="h-9 w-9 text-zinc-700" />
-            </div>
-          ) : null}
-          <button
-            type="button"
-            disabled={resendPending}
-            onClick={handleResend}
-            className="w-full rounded-lg bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-60"
-          >
-            {resendPending ? "Sending…" : "Resend verification link"}
-          </button>
-        </div>
+        <button
+          type="button"
+          disabled={resendPending}
+          onClick={handleResend}
+          className={`mt-6 w-full gap-2 ${primaryButtonClassName}`}
+        >
+          {resendPending ? <Spinner className="h-4 w-4 text-white" /> : null}
+          {resendPending ? "Sending…" : "Resend verification link"}
+        </button>
       ) : null}
 
       {devUrl ? (
@@ -222,7 +218,7 @@ function CheckEmailInner() {
           Go back and register again
         </Link>
       </p>
-    </div>
+    </AuthPageContainer>
   );
 }
 
@@ -230,9 +226,9 @@ export default function CheckEmailPage() {
   return (
     <Suspense
       fallback={
-        <div className="mx-auto flex min-h-[40vh] max-w-md flex-col justify-center px-4 py-12">
+        <AuthPageContainer minHeight="short">
           <Spinner className="mx-auto h-9 w-9 text-zinc-700" />
-        </div>
+        </AuthPageContainer>
       }
     >
       <CheckEmailInner />

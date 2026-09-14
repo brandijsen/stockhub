@@ -52,7 +52,7 @@ export function SuppliersListTable({
   }
 
   return (
-    <div className="mt-6 overflow-x-auto rounded-lg border border-zinc-200">
+    <div className="mt-6 max-w-full overflow-x-auto rounded-lg border border-zinc-200">
       <table className="min-w-full divide-y divide-zinc-200 text-sm">
         <thead className="bg-zinc-50 text-left text-zinc-600">
           <tr>

@@ -26,7 +26,7 @@ export function MessagesView({ withUserId }: MessagesViewProps) {
   );
 
   return (
-    <div>
+    <div className="min-w-0">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold text-zinc-900">Messages</h1>
@@ -50,8 +50,8 @@ export function MessagesView({ withUserId }: MessagesViewProps) {
         </p>
       ) : null}
 
-      <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <div className="lg:col-span-1">
+      <div className="mt-6 grid min-w-0 grid-cols-1 gap-4 lg:grid-cols-3">
+        <div className="min-w-0 lg:col-span-1">
           <MessagesInbox
             conversations={conversations}
             selectedId={selectedId}
@@ -59,7 +59,7 @@ export function MessagesView({ withUserId }: MessagesViewProps) {
             onSelect={setSelectedId}
           />
         </div>
-        <div className="lg:col-span-2">
+        <div className="min-w-0 lg:col-span-2">
             <MessageThread
               key={selectedConversation?.id ?? "none"}
               conversation={selectedConversation}

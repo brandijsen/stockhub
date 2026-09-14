@@ -7,6 +7,11 @@ import { Suspense, useCallback, useState } from "react";
 
 import { Spinner } from "@/components/Spinner";
 import {
+  AuthPageContainer,
+  pageTitleClassName,
+  primaryButtonClassName,
+} from "@/components/PageContainer";
+import {
   REGISTER_DEV_VERIFY_URL_KEY,
   REGISTER_PENDING_EMAIL_KEY,
   REGISTER_VERIFY_RESEND_TOKEN_KEY,
@@ -82,18 +87,13 @@ function LinkExpiredInner() {
 
   if (invalid || !token) {
     return (
-      <div className="mx-auto flex min-h-[60vh] max-w-md flex-col justify-center px-4 py-12">
-        <h1 className="text-2xl font-semibold text-zinc-900">
-          Invalid verification link
-        </h1>
+      <AuthPageContainer>
+        <h1 className={pageTitleClassName}>Invalid verification link</h1>
         <p className="mt-3 text-sm text-zinc-600">
           This link is not valid or is incomplete. Register again with your
           email to get a new link, or open the latest message we sent you.
         </p>
-        <Link
-          href="/register"
-          className="mt-8 inline-flex justify-center rounded-lg bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-zinc-800"
-        >
+        <Link href="/register" className={`mt-8 ${primaryButtonClassName}`}>
           Register
         </Link>
         <p className="mt-6 text-center text-sm text-zinc-600">
@@ -101,13 +101,13 @@ function LinkExpiredInner() {
             Log in
           </Link>
         </p>
-      </div>
+      </AuthPageContainer>
     );
   }
 
   return (
-    <div className="mx-auto flex min-h-[60vh] max-w-md flex-col justify-center px-4 py-12">
-      <h1 className="text-2xl font-semibold text-zinc-900">Link expired</h1>
+    <AuthPageContainer>
+      <h1 className={pageTitleClassName}>Link expired</h1>
       <p className="mt-3 text-sm text-zinc-600">
         This verification link has expired. Click the button below to send a new verification link. 
       </p>
@@ -130,24 +130,15 @@ function LinkExpiredInner() {
         </p>
       ) : null}
 
-      <div className="relative mt-8">
-        {pending ? (
-          <div
-            className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-white/75 backdrop-blur-[1px]"
-            aria-hidden
-          >
-            <Spinner className="h-9 w-9 text-zinc-700" />
-          </div>
-        ) : null}
-        <button
-          type="button"
-          disabled={pending}
-          onClick={handleResend}
-          className="w-full rounded-lg bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-60"
-        >
-          {pending ? "Sending…" : "Send new verification link"}
-        </button>
-      </div>
+      <button
+        type="button"
+        disabled={pending}
+        onClick={handleResend}
+        className={`mt-8 w-full gap-2 ${primaryButtonClassName}`}
+      >
+        {pending ? <Spinner className="h-4 w-4 text-white" /> : null}
+        {pending ? "Sending…" : "Send new verification link"}
+      </button>
 
       <p className="mt-6 text-center text-sm text-zinc-600">
        
@@ -155,7 +146,7 @@ function LinkExpiredInner() {
           Back to Log In
         </Link>
       </p>
-    </div>
+    </AuthPageContainer>
   );
 }
 
@@ -163,9 +154,9 @@ export default function LinkExpiredPage() {
   return (
     <Suspense
       fallback={
-        <div className="mx-auto flex min-h-[40vh] max-w-md items-center justify-center px-4 py-12">
+        <AuthPageContainer minHeight="short" centered className="items-center">
           <Spinner className="h-9 w-9 text-zinc-700" />
-        </div>
+        </AuthPageContainer>
       }
     >
       <LinkExpiredInner />

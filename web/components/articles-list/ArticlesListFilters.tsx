@@ -41,7 +41,7 @@ export function ArticlesListFilters({
 }: ArticlesListFiltersProps) {
   return (
     <>
-      <form onSubmit={onSearch} className="mt-6 flex max-w-md gap-2">
+      <form onSubmit={onSearch} className="mt-6 flex w-full max-w-md gap-2">
         <input
           type="search"
           placeholder="Search by code, name, or barcode…"
@@ -63,7 +63,7 @@ export function ArticlesListFilters({
           <select
             value={categoryId}
             onChange={(e) => onCategoryChange(e.target.value)}
-            className={`min-w-40 ${articlesListFilterControlClass}`}
+            className={`w-full min-w-0 sm:min-w-40 ${articlesListFilterControlClass}`}
           >
             <option value="">All categories</option>
             {categories.map((category) => (
@@ -78,7 +78,7 @@ export function ArticlesListFilters({
           <select
             value={brandId}
             onChange={(e) => onBrandChange(e.target.value)}
-            className={`min-w-40 ${articlesListFilterControlClass}`}
+            className={`w-full min-w-0 sm:min-w-40 ${articlesListFilterControlClass}`}
           >
             <option value="">All brands</option>
             {brands.map((brand) => (

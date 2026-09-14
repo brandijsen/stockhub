@@ -1,4 +1,5 @@
 import { ArticleDetail } from "@/components/ArticleDetail";
+import { PageContainer } from "@/components/PageContainer";
 import { getSession } from "@/lib/session";
 import { canManageArticles } from "@/lib/roles";
 
@@ -14,8 +15,8 @@ export default async function ArticleDetailPage({
   const canManage = canManageArticles(user?.role);
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8">
+    <PageContainer width="detail">
       <ArticleDetail articleId={id} canManage={canManage} />
-    </div>
+    </PageContainer>
   );
 }

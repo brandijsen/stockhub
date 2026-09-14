@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { ArticleForm } from "@/components/ArticleForm";
+import { PageContainer, pageTitleClassName } from "@/components/PageContainer";
 import { getSession } from "@/lib/session";
 import { canManageArticles } from "@/lib/roles";
 
@@ -18,8 +19,8 @@ export default async function EditArticlePage({ params }: EditArticlePageProps) 
   const { id } = await params;
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-8">
-      <h1 className="text-2xl font-semibold text-zinc-900">Edit article</h1>
+    <PageContainer width="narrow">
+      <h1 className={pageTitleClassName}>Edit article</h1>
       <div className="mt-8">
         <p className="mb-6 text-sm text-zinc-600">
           <Link href={`/articles/${id}`} className="underline hover:text-zinc-900">
@@ -28,6 +29,6 @@ export default async function EditArticlePage({ params }: EditArticlePageProps) 
         </p>
         <ArticleForm mode="edit" articleId={id} />
       </div>
-    </div>
+    </PageContainer>
   );
 }

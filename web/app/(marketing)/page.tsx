@@ -1,9 +1,18 @@
 import Link from "next/link";
 
+import {
+  PageContainer,
+  primaryButtonClassName,
+  secondaryButtonClassName,
+} from "@/components/PageContainer";
+
 export default function HomePage() {
   return (
-    <div className="flex min-h-full flex-1 flex-col bg-zinc-50">
-      <section className="mx-auto flex w-full max-w-5xl flex-1 flex-col justify-center px-4 py-16 sm:py-24">
+    <div className="flex min-h-full min-w-0 w-full flex-1 flex-col bg-zinc-50">
+      <PageContainer
+        padding="marketing"
+        className="flex flex-1 flex-col justify-center"
+      >
         <p className="text-sm font-medium uppercase tracking-wide text-zinc-500">
           StockHub
         </p>
@@ -17,13 +26,13 @@ export default function HomePage() {
         <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center">
           <Link
             href="/login"
-            className="inline-flex h-12 items-center justify-center rounded-lg bg-zinc-900 px-8 text-sm font-medium text-white transition-colors hover:bg-zinc-800"
+            className={`${primaryButtonClassName} px-8`}
           >
             Log in
           </Link>
           <Link
             href="/register"
-            className="inline-flex h-12 items-center justify-center rounded-lg border border-zinc-300 bg-white px-8 text-sm font-medium text-zinc-800 transition-colors hover:bg-zinc-50"
+            className={`${secondaryButtonClassName} px-8`}
           >
             Create an account
           </Link>
@@ -38,7 +47,7 @@ export default function HomePage() {
           </Link>
           .
         </p>
-      </section>
+      </PageContainer>
     </div>
   );
 }

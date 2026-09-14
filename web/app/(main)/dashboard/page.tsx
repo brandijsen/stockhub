@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 
+import { PageContainer } from "@/components/PageContainer";
 import { DashboardView } from "@/components/dashboard/DashboardView";
 import { getSession } from "@/lib/session";
 
@@ -10,8 +11,8 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8">
+    <PageContainer>
       <DashboardView userName={user.name} userRole={user.role} />
-    </div>
+    </PageContainer>
   );
 }

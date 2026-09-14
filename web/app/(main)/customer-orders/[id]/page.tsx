@@ -1,4 +1,5 @@
 import { CustomerOrderDetail } from "@/components/CustomerOrderDetail";
+import { PageContainer } from "@/components/PageContainer";
 
 type CustomerOrderPageProps = {
   params: Promise<{ id: string }>;
@@ -10,8 +11,8 @@ export default async function CustomerOrderPage({
   const { id } = await params;
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8">
+    <PageContainer>
       <CustomerOrderDetail orderId={id} />
-    </div>
+    </PageContainer>
   );
 }

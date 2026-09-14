@@ -85,7 +85,7 @@ export function SupplierOrderCheckingSection({
         Any team member can complete this step.
       </p>
 
-      <div className="mt-4 overflow-x-auto rounded-lg border border-zinc-200 bg-white">
+      <div className="mt-4 max-w-full overflow-x-auto rounded-lg border border-zinc-200 bg-white">
         <table className="min-w-full divide-y divide-zinc-200 text-sm">
           <thead className="bg-zinc-50 text-left text-zinc-600">
             <tr>

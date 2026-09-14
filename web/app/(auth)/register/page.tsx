@@ -7,6 +7,11 @@ import { FormEvent, useState } from "react";
 
 import { Spinner } from "@/components/Spinner";
 import {
+  AuthPageContainer,
+  pageTitleClassName,
+  primaryButtonClassName,
+} from "@/components/PageContainer";
+import {
   REGISTER_DEV_VERIFY_URL_KEY,
   REGISTER_PENDING_EMAIL_KEY,
   REGISTER_VERIFY_RESEND_TOKEN_KEY,
@@ -80,8 +85,8 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="mx-auto flex min-h-[60vh] max-w-md flex-col justify-center px-4 py-12">
-      <h1 className="text-2xl font-semibold text-zinc-900">Register</h1>
+    <AuthPageContainer>
+      <h1 className={pageTitleClassName}>Register</h1>
       <p className="mt-1 text-sm text-zinc-600">
         Enter your details, then confirm your email via the link we send you.
         Your account is created only after you open that link.
@@ -92,15 +97,7 @@ export default function RegisterPage() {
         </p>
       ) : null}
 
-      <div className="relative mt-8">
-        {pending ? (
-          <div
-            className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-white/75 backdrop-blur-[1px]"
-            aria-hidden
-          >
-            <Spinner className="h-9 w-9 text-zinc-700" />
-          </div>
-        ) : null}
+      <div className="mt-8">
         <form
           onSubmit={handleSubmit}
           aria-busy={pending}
@@ -174,7 +171,7 @@ export default function RegisterPage() {
           <button
             type="submit"
             disabled={pending}
-            className="mt-2 inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-60"
+            className={`mt-2 gap-2 ${primaryButtonClassName}`}
           >
             {pending ? <Spinner className="h-4 w-4 text-white" /> : null}
             {pending ? "Creating account…" : "Create account"}
@@ -188,6 +185,6 @@ export default function RegisterPage() {
           Log in
         </Link>
       </p>
-    </div>
+    </AuthPageContainer>
   );
 }

@@ -1,3 +1,4 @@
+import { PageContainer } from "@/components/PageContainer";
 import { SupplierOrderDetail } from "@/components/SupplierOrderDetail";
 import { canManageSupplierOrders } from "@/lib/roles";
 import { getSession } from "@/lib/session";
@@ -14,8 +15,8 @@ export default async function SupplierOrderDetailPage({
   const canManage = canManageSupplierOrders(user?.role);
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8">
+    <PageContainer width="detail">
       <SupplierOrderDetail orderId={id} canManage={canManage} />
-    </div>
+    </PageContainer>
   );
 }
