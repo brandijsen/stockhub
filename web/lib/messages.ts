@@ -45,10 +45,6 @@ export type SendMessageResponse = {
   message: ChatMessage;
 };
 
-export type UnreadCountResponse = {
-  total: number;
-};
-
 export async function fetchConversations(): Promise<ConversationSummary[]> {
   const { data } = await api.get<ConversationsListResponse>("/api/conversations");
   return data.conversations;
@@ -88,13 +84,6 @@ export async function sendChatMessage(
 
 export async function markConversationRead(conversationId: string): Promise<void> {
   await api.post(`/api/conversations/${conversationId}/read`);
-}
-
-export async function fetchUnreadCount(): Promise<number> {
-  const { data } = await api.get<UnreadCountResponse>(
-    "/api/conversations/unread-count",
-  );
-  return data.total;
 }
 
 export function formatMessageTime(iso: string): string {

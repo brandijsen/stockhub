@@ -145,39 +145,6 @@ async function sendViaResendMessage(
   return { ok: true };
 }
 
-export async function sendTransactionalEmail(params: {
-  to: string;
-  subject: string;
-  html: string;
-  text: string;
-}): Promise<{ ok: true } | { ok: false; message: string }> {
-  const sender = parseEmailFrom();
-  if (!sender) {
-    return { ok: false, message: "EMAIL_FROM missing or invalid" };
-  }
-
-  const mode = mailProvider();
-  if (mode === "brevo" || (mode === "auto" && brevoApiKey())) {
-    return sendViaBrevoMessage(
-      params.to,
-      params.subject,
-      params.html,
-      params.text,
-      sender,
-    );
-  }
-  if (mode === "resend" || (mode === "auto" && resendApiKey())) {
-    return sendViaResendMessage(
-      params.to,
-      params.subject,
-      params.html,
-      params.text,
-      sender,
-    );
-  }
-  return { ok: false, message: "No mail API key for selected MAIL_PROVIDER" };
-}
-
 async function sendViaBrevo(
   to: string,
   verifyUrl: string,

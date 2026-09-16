@@ -78,7 +78,7 @@ Without mail configured, registration returns **503** in production.
 | `BREVO_API_KEY` or `RESEND_API_KEY` | One provider |
 | `EMAIL_FROM` | Verified sender, e.g. `StockHub <noreply@yourdomain.com>` |
 
-Also used for supplier order emails.
+Used for registration verification emails only (no outbound mail to suppliers or customers).
 
 ### Recommended — API (behind reverse proxy)
 
@@ -157,7 +157,7 @@ cd web && npm run build && npm start
 
 ### Supplier orders (admin)
 
-- [ ] Create supplier order → supplier email sent
+- [ ] Create supplier order (pending status in app)
 - [ ] Declare arrived → in-app notification
 - [ ] Complete checking (line conformity)
 - [ ] Close as succeeded → stock increased (`LOAD` movement)
