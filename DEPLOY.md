@@ -14,6 +14,22 @@ For local setup see [README.md](README.md). Copy [`.env.example`](.env.example) 
 
 The browser only talks to the frontend origin. Next.js rewrites `/api/*` to Express using `API_URL` (see `web/next.config.ts`).
 
+### Vercel (monorepo `web/`)
+
+In the Vercel project **Settings → General**:
+
+| Setting | Value |
+|---------|--------|
+| Root Directory | **`web`** |
+| Framework Preset | **Next.js** (not “Other”) |
+| Build Command | empty (default) or `npm run build` |
+| Output Directory | **empty** — do not use `public` or `.` |
+| Production Branch | **`development`** (or `main` after merge) |
+
+Env (Production): `AUTH_SECRET` (same as API), `API_URL` (public Render URL, no trailing slash). Do not set `NODE_ENV` manually if it breaks the build (Tailwind devDependencies).
+
+If the site shows Vercel’s generic **“This page doesn’t exist”** (not StockHub’s 404 copy), the deployment is not running as Next.js — fix preset/output/root and redeploy. See `web/vercel.json`.
+
 ## 1. Database migrations (Supabase)
 
 Run **before** or **immediately after** pointing production env at Supabase. Use **`migrate deploy`**, not `migrate dev` (the latter can prompt for a full reset if an old migration checksum was modified).
