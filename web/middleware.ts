@@ -1,39 +1,21 @@
-import { jwtVerify } from "jose";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-import { SESSION_COOKIE } from "@/lib/session-cookie";
+const SESSION_COOKIE = "stockhub_session";
 
-async function getSessionPayload(request: NextRequest) {
-  const secret = process.env.AUTH_SECRET;
-  if (!secret) {
-    return null;
-  }
-  const token = request.cookies.get(SESSION_COOKIE)?.value;
-  if (!token) {
-    return null;
-  }
-  try {
-    const { payload } = await jwtVerify(
-      token,
-      new TextEncoder().encode(secret),
-    );
-    return payload;
-  } catch {
-    return null;
-  }
-}
-
+/**
+ * Edge-safe: no jose/crypto — JWT is verified in server components via getSession().
+ * Here we only skip login/register when a session cookie is present.
+ */
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const session = await getSessionPayload(request);
-  const isLoggedIn = !!session?.sub;
+  const hasSessionCookie = !!request.cookies.get(SESSION_COOKIE)?.value;
 
   if (
-    isLoggedIn &&
+    hasSessionCookie &&
     (pathname.startsWith("/login") || pathname.startsWith("/register"))
   ) {
-    return NextResponse.redirect(new URL("/dashboard", request.nextUrl.origin));
+    return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
   return NextResponse.next();
