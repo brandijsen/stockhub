@@ -2,8 +2,9 @@ import { jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import { cache } from "react";
 
-/** Same name as Express `api/src/lib/session-token.ts` */
-export const SESSION_COOKIE = "stockhub_session";
+import { SESSION_COOKIE } from "./session-cookie";
+
+export { SESSION_COOKIE } from "./session-cookie";
 
 export type AppSessionUser = {
   id: string;

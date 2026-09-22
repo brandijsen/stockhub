@@ -2,7 +2,7 @@ import { jwtVerify } from "jose";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-import { SESSION_COOKIE } from "@/lib/session";
+import { SESSION_COOKIE } from "@/lib/session-cookie";
 
 async function getSessionPayload(request: NextRequest) {
   const secret = process.env.AUTH_SECRET;
