@@ -88,6 +88,8 @@ Health check: `GET http://localhost:4000/api/health`
 
 - Registration creates a **`PendingRegistration`** until the user opens the verification link.
 - After verification, a **`User`** row exists with a required **`emailVerified`** timestamp.
+- In local development the API returns the verification link on the “check your email” page (`NODE_ENV=development`), so signup does not depend on the inbox.
+- In production the link is only in the email. `EMAIL_FROM` must be a sender on a domain authenticated in Brevo (DKIM and DMARC), for example `StockHub <noreply@stockhub.win>`. A free mailbox such as Gmail is rewritten to Brevo's shared domain and other providers may drop it.
 - Session: HTTP-only cookie `stockhub_session` (JWT), issued by Express, verified by Next middleware and `getSession()`.
 
 Auth routes (proxied through Next as `/api/auth/...`): `register`, `login`, `logout`, `verify-email`.
