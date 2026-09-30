@@ -102,6 +102,7 @@ Without mail configured, registration returns **503** in production.
 |----------|--------|
 | `MAIL_PROVIDER` | `brevo` or `resend` (recommended: set explicitly) |
 | `BREVO_API_KEY` or `RESEND_API_KEY` | One provider |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase **service_role** secret. Stores article and profile images in the `stockhub` bucket so they survive a Render redeploy. `SUPABASE_URL` is optional if `DATABASE_URL` is the Supabase pooler URL. |
 | `EMAIL_FROM` | Sender on a domain you authenticated in Brevo (DKIM and DMARC), e.g. `StockHub <noreply@stockhub.win>` |
 
 Used for registration verification emails only (no outbound mail to suppliers or customers). A free mailbox such as Gmail cannot be authenticated: Brevo rewrites it to a shared `@brevosend.com` address and other providers may drop the message.

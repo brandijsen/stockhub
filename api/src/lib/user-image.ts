@@ -9,6 +9,11 @@ import {
   resolveStoredImagePath,
   UPLOAD_ROOT,
 } from "./article-image";
+import {
+  deleteStoredObject,
+  storageConfigured,
+  uploadPublicObject,
+} from "./object-storage";
 
 export const PROFILE_IMAGE_MAX_BYTES = ARTICLE_IMAGE_MAX_BYTES;
 export const PROFILE_IMAGE_MIME_TYPES = ARTICLE_IMAGE_MIME_TYPES;
@@ -34,7 +39,11 @@ export function resolveProfileImageUrl(
 export async function deleteUserImageFile(
   storageKey: string | null | undefined,
 ): Promise<void> {
-  if (!storageKey || storageKey.startsWith("http")) {
+  if (!storageKey) {
+    return;
+  }
+  if (storageKey.startsWith("http://") || storageKey.startsWith("https://")) {
+    await deleteStoredObject(storageKey);
     return;
   }
   try {
@@ -60,9 +69,15 @@ export async function saveUserImageFile(
   buffer: Buffer,
   mime: string,
 ): Promise<string> {
-  await removeUserImageVariants(userId);
   const ext = extensionForMime(mime);
   const storageKey = path.posix.join("users", `${userId}${ext}`);
+  if (storageConfigured()) {
+    for (const variant of [".jpg", ".jpeg", ".png", ".webp"]) {
+      await deleteStoredObject(`users/${userId}${variant}`);
+    }
+    return uploadPublicObject(storageKey, buffer, mime);
+  }
+  await removeUserImageVariants(userId);
   const fullPath = resolveStoredImagePath(storageKey);
   await fs.mkdir(path.dirname(fullPath), { recursive: true });
   await fs.writeFile(fullPath, buffer);

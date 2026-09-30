@@ -1,6 +1,8 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 
+import { deleteStoredObject, storageConfigured, uploadPublicObject } from "./object-storage";
+
 export const UPLOAD_ROOT = path.join(__dirname, "..", "..", "uploads");
 export const ARTICLE_IMAGES_DIR = path.join(UPLOAD_ROOT, "articles");
 
@@ -28,6 +30,19 @@ export function articleImagePublicPath(articleId: string): string {
   return `/api/articles/${articleId}/image`;
 }
 
+export function articleImageUrlForClient(
+  articleId: string,
+  stored: string | null | undefined,
+): string | null {
+  if (!stored) {
+    return null;
+  }
+  if (stored.startsWith("http://") || stored.startsWith("https://")) {
+    return stored;
+  }
+  return articleImagePublicPath(articleId);
+}
+
 export function resolveStoredImagePath(storageKey: string): string {
   const normalized = path.normalize(storageKey).replace(/^(\.\.(\/|\\|$))+/, "");
   const full = path.join(UPLOAD_ROOT, normalized);
@@ -41,6 +56,10 @@ export async function deleteArticleImageFile(
   storageKey: string | null | undefined,
 ): Promise<void> {
   if (!storageKey) {
+    return;
+  }
+  if (storageKey.startsWith("http://") || storageKey.startsWith("https://")) {
+    await deleteStoredObject(storageKey);
     return;
   }
   try {
@@ -66,9 +85,15 @@ export async function saveArticleImageFile(
   buffer: Buffer,
   mime: string,
 ): Promise<string> {
-  await removeArticleImageVariants(articleId);
   const ext = extensionForMime(mime);
   const storageKey = path.posix.join("articles", `${articleId}${ext}`);
+  if (storageConfigured()) {
+    for (const variant of [".jpg", ".jpeg", ".png", ".webp"]) {
+      await deleteStoredObject(`articles/${articleId}${variant}`);
+    }
+    return uploadPublicObject(storageKey, buffer, mime);
+  }
+  await removeArticleImageVariants(articleId);
   const fullPath = resolveStoredImagePath(storageKey);
   await fs.mkdir(path.dirname(fullPath), { recursive: true });
   await fs.writeFile(fullPath, buffer);

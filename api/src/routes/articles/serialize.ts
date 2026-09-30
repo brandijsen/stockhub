@@ -8,7 +8,7 @@ import type {
 } from "@prisma/client";
 import { Decimal } from "@prisma/client/runtime/library";
 
-import { articleImagePublicPath } from "../../lib/article-image";
+import { articleImageUrlForClient } from "../../lib/article-image";
 
 type ArticleWithRelations = Article & {
   brand: Brand | null;
@@ -39,9 +39,7 @@ export function serializeArticle(article: ArticleWithRelations) {
     barcode: article.barcode,
     price: decimalToNumber(article.price),
     weightGrams: article.weightGrams,
-    imageUrl: article.imageUrl
-      ? articleImagePublicPath(article.id)
-      : null,
+    imageUrl: articleImageUrlForClient(article.id, article.imageUrl),
     brand: article.brand
       ? { id: article.brand.id, name: article.brand.name }
       : null,
@@ -120,9 +118,7 @@ export function serializeArticleListItem(
     lowStock: article.stock < article.minThreshold,
     isActive: article.isActive,
     price: decimalToNumber(article.price),
-    imageUrl: article.imageUrl
-      ? articleImagePublicPath(article.id)
-      : null,
+    imageUrl: articleImageUrlForClient(article.id, article.imageUrl),
     brand: article.brand
       ? { id: article.brand.id, name: article.brand.name }
       : null,

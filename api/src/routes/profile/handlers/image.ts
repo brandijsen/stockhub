@@ -103,7 +103,7 @@ export async function deleteProfileImage(
       return;
     }
 
-    if (existing.image && !existing.image.startsWith("http")) {
+    if (existing.image) {
       await deleteUserImageFile(existing.image);
     }
 

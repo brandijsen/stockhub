@@ -60,6 +60,14 @@ export async function getArticleImage(
       return;
     }
 
+    if (
+      article.imageUrl.startsWith("http://") ||
+      article.imageUrl.startsWith("https://")
+    ) {
+      res.redirect(article.imageUrl);
+      return;
+    }
+
     const filePath = resolveStoredImagePath(article.imageUrl);
     res.setHeader("Content-Type", contentTypeForStorageKey(article.imageUrl));
     res.setHeader("Cache-Control", "private, max-age=3600");
