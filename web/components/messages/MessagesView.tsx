@@ -4,44 +4,43 @@ import { useMemo } from "react";
 
 import { MessageThread } from "./MessageThread";
 import { MessagesInbox } from "./MessagesInbox";
+import { NewConversation } from "./NewConversation";
 import { useConversations } from "./useConversations";
 
 type MessagesViewProps = {
   withUserId?: string;
+  conversationId?: string;
 };
 
-export function MessagesView({ withUserId }: MessagesViewProps) {
+export function MessagesView({ withUserId, conversationId }: MessagesViewProps) {
   const {
     conversations,
     selectedId,
     setSelectedId,
     loading,
     error,
-    loadConversations,
-  } = useConversations(withUserId);
+    openWithUser,
+  } = useConversations(withUserId, conversationId);
 
   const selectedConversation = useMemo(
     () => conversations.find((c) => c.id === selectedId) ?? null,
     [conversations, selectedId],
   );
+  const existingUserIds = useMemo(
+    () =>
+      conversations.flatMap((conversation) =>
+        conversation.otherUser ? [conversation.otherUser.id] : [],
+      ),
+    [conversations],
+  );
 
   return (
     <div className="min-w-0">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold text-zinc-900">Messages</h1>
-          <p className="mt-1 text-zinc-600">
-            Direct messages with your team.
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={() => void loadConversations(true)}
-          disabled={loading && conversations.length === 0}
-          className="rounded-lg border border-zinc-300 bg-white px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          Refresh
-        </button>
+      <div>
+        <h1 className="text-2xl font-semibold text-zinc-900">Messages</h1>
+        <p className="mt-1 text-zinc-600">
+          Direct messages with your team.
+        </p>
       </div>
 
       {error ? (
@@ -52,6 +51,10 @@ export function MessagesView({ withUserId }: MessagesViewProps) {
 
       <div className="mt-6 grid min-w-0 grid-cols-1 gap-4 lg:grid-cols-3">
         <div className="min-w-0 lg:col-span-1">
+          <NewConversation
+            existingUserIds={existingUserIds}
+            onStart={openWithUser}
+          />
           <MessagesInbox
             conversations={conversations}
             selectedId={selectedId}

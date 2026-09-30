@@ -61,10 +61,26 @@ function verificationEmailHtml(verifyUrl: string): string {
   return `<!DOCTYPE html>
 <html>
   <head><meta charset="utf-8" /></head>
-  <body style="font-family:system-ui,sans-serif;line-height:1.5;color:#18181b;">
-    <p>Confirm your email for StockHub by opening the link below (link valid for ${ttl}):</p>
-    <p><a href="${verifyUrl}" style="color:#18181b;">Verify my email</a></p>
-    <p style="font-size:12px;color:#71717a;">If you did not sign up, you can ignore this message.</p>
+  <body style="margin:0;background:#fafafa;font-family:system-ui,sans-serif;line-height:1.5;color:#18181b;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#fafafa;">
+      <tr>
+        <td align="center" style="padding:32px 16px;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background:#ffffff;border:1px solid #e4e4e7;border-radius:16px;">
+            <tr>
+              <td style="padding:32px;">
+                <p style="margin:0;font-size:20px;font-weight:600;letter-spacing:-0.02em;">StockHub</p>
+                <h1 style="margin:24px 0 0;font-size:22px;font-weight:600;letter-spacing:-0.02em;">Confirm your email</h1>
+                <p style="margin:12px 0 0;font-size:16px;color:#52525b;">Open the button below to finish creating your account. The link is valid for ${ttl}.</p>
+                <p style="margin:24px 0 0;">
+                  <a href="${verifyUrl}" style="display:inline-block;background:#18181b;color:#ffffff;text-decoration:none;font-size:14px;font-weight:500;line-height:20px;padding:12px 20px;border-radius:8px;">Verify my email</a>
+                </p>
+                <p style="margin:24px 0 0;font-size:12px;color:#71717a;">If you did not sign up, you can ignore this message.</p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
   </body>
 </html>`;
 }

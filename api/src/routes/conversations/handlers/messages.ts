@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 
 import { getConversationParticipant } from "../../../lib/direct-conversation";
+import { notifyDirectMessage } from "../../../lib/notify-direct-message";
 import type { AuthenticatedRequest } from "../../../middleware/require-auth";
 import { prisma } from "../../../lib/prisma";
 import { listMessagesQuerySchema, sendMessageSchema } from "../schemas";
@@ -130,6 +131,17 @@ export async function sendMessage(
       });
 
       return created;
+    });
+
+    const actorName =
+      `${message.sender.firstName} ${message.sender.lastName}`.trim() ||
+      "A team member";
+
+    await notifyDirectMessage({
+      conversationId: id,
+      actorUserId: currentUserId,
+      actorName,
+      body: message.body,
     });
 
     res.status(201).json({

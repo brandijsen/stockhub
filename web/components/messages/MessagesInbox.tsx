@@ -34,7 +34,7 @@ export function MessagesInbox({
   if (conversations.length === 0) {
     return (
       <p className="rounded-lg border border-zinc-200 bg-white p-4 text-sm text-zinc-600">
-        No conversations yet. Start one from the Staff page.
+        No conversations yet. Start one with a team member above.
       </p>
     );
   }

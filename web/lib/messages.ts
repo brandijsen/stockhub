@@ -82,6 +82,13 @@ export async function sendChatMessage(
   return data.message;
 }
 
+export async function fetchUnreadMessagesCount(): Promise<number> {
+  const { data } = await api.get<{ total: number }>(
+    "/api/conversations/unread-count",
+  );
+  return data.total;
+}
+
 export async function markConversationRead(conversationId: string): Promise<void> {
   await api.post(`/api/conversations/${conversationId}/read`);
 }

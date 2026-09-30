@@ -54,9 +54,21 @@ export async function markConversationRead(
       return;
     }
 
+    const readAt = new Date();
+
     await prisma.conversationParticipant.update({
       where: { id: membership.id },
-      data: { lastReadAt: new Date() },
+      data: { lastReadAt: readAt },
+    });
+
+    await prisma.notification.updateMany({
+      where: {
+        userId: currentUserId,
+        conversationId: id,
+        type: "DIRECT_MESSAGE",
+        readAt: null,
+      },
+      data: { readAt },
     });
 
     res.json({ ok: true });

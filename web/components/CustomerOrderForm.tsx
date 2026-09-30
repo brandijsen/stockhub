@@ -100,6 +100,15 @@ export function CustomerOrderForm() {
       return;
     }
 
+    const seen = new Set<string>();
+    for (const line of payloadLines) {
+      if (seen.has(line.articleId)) {
+        setError("Each article can appear only once in the order.");
+        return;
+      }
+      seen.add(line.articleId);
+    }
+
     setSaving(true);
     setError(null);
     try {
@@ -195,7 +204,14 @@ export function CustomerOrderForm() {
               >
                 <option value="">Select article</option>
                 {articles.map((article) => (
-                  <option key={article.id} value={article.id}>
+                  <option
+                    key={article.id}
+                    value={article.id}
+                    disabled={
+                      article.id !== line.articleId &&
+                      lines.some((other) => other.articleId === article.id)
+                    }
+                  >
                     {article.code} — {article.name} (stock {article.stock})
                   </option>
                 ))}

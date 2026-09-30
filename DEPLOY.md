@@ -28,6 +28,16 @@ In the Vercel project **Settings → General**:
 
 Env (Production): `AUTH_SECRET` (same as API), `API_URL` (public Render URL, no trailing slash). Do not set `NODE_ENV` manually if it breaks the build (Tailwind devDependencies).
 
+### Render (monorepo `api/`)
+
+| Setting | Value |
+|---------|--------|
+| Root Directory | **`api`** |
+| Build Command | `npm install --include=dev && npm run build` |
+| Start Command | `npm start` |
+
+`NODE_ENV=production` on Render skips devDependencies, and the API build needs them (`prisma`, `typescript`). The `--include=dev` flag is what makes `npm run build` succeed.
+
 If the site shows Vercel’s generic **“This page doesn’t exist”** (not StockHub’s 404 copy), the deployment is not running as Next.js — fix preset/output/root and redeploy. See `web/vercel.json`.
 
 ## 1. Database migrations (Supabase)
@@ -81,7 +91,7 @@ Use the **repo root** `.env` locally. In production, set the same keys on each h
 | Variable | Example | Notes |
 |----------|---------|--------|
 | `NODE_ENV` | `production` | |
-| `AUTH_SECRET` | **Same value as API** | Verifies JWT in middleware / `getSession()` |
+| `AUTH_SECRET` | **Same value as API** | Verifies JWT in `getSession()` |
 | `API_URL` | `https://your-api.example.com` | Rewrite target for `/api/*` |
 
 ### Required — Email (API, production registration)
@@ -92,9 +102,9 @@ Without mail configured, registration returns **503** in production.
 |----------|--------|
 | `MAIL_PROVIDER` | `brevo` or `resend` (recommended: set explicitly) |
 | `BREVO_API_KEY` or `RESEND_API_KEY` | One provider |
-| `EMAIL_FROM` | Verified sender, e.g. `StockHub <noreply@yourdomain.com>` |
+| `EMAIL_FROM` | Sender on a domain you authenticated in Brevo (DKIM and DMARC), e.g. `StockHub <noreply@stockhub.win>` |
 
-Used for registration verification emails only (no outbound mail to suppliers or customers).
+Used for registration verification emails only (no outbound mail to suppliers or customers). A free mailbox such as Gmail cannot be authenticated: Brevo rewrites it to a shared `@brevosend.com` address and other providers may drop the message.
 
 ### Recommended — API (behind reverse proxy)
 
@@ -121,7 +131,7 @@ PORT=4000
 TRUST_PROXY=1
 MAIL_PROVIDER=brevo
 BREVO_API_KEY=xkeysib-...
-EMAIL_FROM=StockHub <noreply@yourdomain.com>
+EMAIL_FROM=StockHub <noreply@stockhub.win>
 ```
 
 ### Example — Web host (e.g. Vercel, root directory `web/`)

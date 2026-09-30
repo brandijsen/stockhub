@@ -20,6 +20,13 @@ export async function validateCustomerOrderLines(
   | { ok: false; error: string }
 > {
   const articleIds = lines.map((line) => line.articleId);
+  if (new Set(articleIds).size !== articleIds.length) {
+    return {
+      ok: false,
+      error: "Each article can appear only once in the order.",
+    };
+  }
+
   const articles = await prisma.article.findMany({
     where: { id: { in: articleIds } },
     select: {

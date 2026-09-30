@@ -2,7 +2,7 @@ import { MessagesView } from "@/components/messages/MessagesView";
 import { PageContainer } from "@/components/PageContainer";
 
 type MessagesPageProps = {
-  searchParams: Promise<{ with?: string }>;
+  searchParams: Promise<{ with?: string; conversation?: string }>;
 };
 
 export default async function MessagesPage({ searchParams }: MessagesPageProps) {
@@ -10,7 +10,10 @@ export default async function MessagesPage({ searchParams }: MessagesPageProps) 
 
   return (
     <PageContainer width="wide">
-      <MessagesView withUserId={params.with} />
+      <MessagesView
+        withUserId={params.with}
+        conversationId={params.conversation}
+      />
     </PageContainer>
   );
 }

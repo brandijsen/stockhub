@@ -9,6 +9,7 @@ export type Notification = {
   readAt: string | null;
   supplierOrderId: string | null;
   articleId: string | null;
+  conversationId: string | null;
   createdAt: string;
 };
 
@@ -28,6 +29,9 @@ export function notificationHref(notification: Notification): string | null {
   if (notification.articleId) {
     return `/articles/${notification.articleId}`;
   }
+  if (notification.conversationId) {
+    return `/messages?conversation=${notification.conversationId}`;
+  }
   return null;
 }
 
@@ -38,6 +42,7 @@ export function formatNotificationTime(iso: string): string {
 const NOTIFICATION_TYPE_LABELS: Record<string, string> = {
   STOCK_ADJUSTMENT: "Stock",
   SUPPLIER_ORDER_ARRIVED: "Supplier order",
+  DIRECT_MESSAGE: "Message",
 };
 
 export function notificationTypeLabel(type: string): string {
@@ -50,6 +55,8 @@ export function notificationTypeBadgeClass(type: string): string {
       return "bg-amber-100 text-amber-900";
     case "SUPPLIER_ORDER_ARRIVED":
       return "bg-sky-100 text-sky-900";
+    case "DIRECT_MESSAGE":
+      return "bg-violet-100 text-violet-900";
     default:
       return "bg-zinc-100 text-zinc-700";
   }

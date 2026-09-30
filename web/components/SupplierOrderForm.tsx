@@ -256,7 +256,14 @@ export function SupplierOrderForm({ order }: { order?: SupplierOrder }) {
                 >
                   <option value="">Select article…</option>
                   {sortedArticles.map((article) => (
-                    <option key={article.id} value={article.id}>
+                    <option
+                      key={article.id}
+                      value={article.id}
+                      disabled={
+                        article.id !== line.articleId &&
+                        lines.some((other) => other.articleId === article.id)
+                      }
+                    >
                       {article.lowStock ? "[Low stock] " : ""}
                       {article.code} — {article.name} (stock {article.stock})
                     </option>

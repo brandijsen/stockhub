@@ -38,6 +38,7 @@ export async function listNotifications(
     const rows = await prisma.notification.findMany({
       where: {
         userId: session.sub,
+        type: { not: "DIRECT_MESSAGE" },
         ...(cursorNotification
           ? { createdAt: { lt: cursorNotification.createdAt } }
           : {}),

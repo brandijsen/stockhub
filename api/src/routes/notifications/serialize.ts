@@ -8,6 +8,7 @@ export type SerializedNotification = {
   readAt: string | null;
   supplierOrderId: string | null;
   articleId: string | null;
+  conversationId: string | null;
   createdAt: string;
 };
 
@@ -22,6 +23,7 @@ export function serializeNotification(
     readAt: notification.readAt?.toISOString() ?? null,
     supplierOrderId: notification.supplierOrderId,
     articleId: notification.articleId,
+    conversationId: notification.conversationId,
     createdAt: notification.createdAt.toISOString(),
   };
 }

@@ -14,6 +14,7 @@ export async function unreadNotificationsCount(
       where: {
         userId: session.sub,
         readAt: null,
+        type: { not: "DIRECT_MESSAGE" },
       },
     });
     res.json({ total });

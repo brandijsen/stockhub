@@ -11,7 +11,10 @@ import { apiErrorMessage } from "@/lib/api-client";
 
 const POLL_INTERVAL_MS = 30_000;
 
-export function useConversations(initialWithUserId?: string) {
+export function useConversations(
+  initialWithUserId?: string,
+  initialConversationId?: string,
+) {
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -65,6 +68,13 @@ export function useConversations(initialWithUserId?: string) {
     }
     void openWithUser(initialWithUserId);
   }, [initialWithUserId, openWithUser]);
+
+  useEffect(() => {
+    if (!initialConversationId || initialWithUserId) {
+      return;
+    }
+    setSelectedId(initialConversationId);
+  }, [initialConversationId, initialWithUserId]);
 
   const upsertConversation = useCallback((conversation: ConversationSummary) => {
     setConversations((current) => {
