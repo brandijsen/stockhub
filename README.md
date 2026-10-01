@@ -35,6 +35,7 @@ Browser calls to `http://localhost:3000/api/...` are **rewritten** to the Expres
    - `API_URL` — Express base URL (e.g. `http://localhost:4000`)
    - Optional API hardening: `TRUST_PROXY` when behind a reverse proxy (rate limiting uses client IP); `API_JSON_BODY_LIMIT` (default `256kb`) caps JSON request bodies
    - Optional transactional email (`Brevo` / `Resend` and `EMAIL_FROM`) for registration verification
+   - Optional `SUPABASE_SERVICE_ROLE_KEY` — stores article and profile images in Supabase Storage. Without it, files stay on the API disk and disappear when that disk is replaced (for example a Render redeploy). `SUPABASE_URL` is optional when `DATABASE_URL` is a Supabase pooler URL.
    - Optional `VERIFY_TTL_MINUTES` — how long signup verification links stay valid (defaults to **1440** = 24h; use e.g. `2` locally for quick expiry tests)
 
 See `.env.example` for comments and optional variables (e.g. superadmin seed).
