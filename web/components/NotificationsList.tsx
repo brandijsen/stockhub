@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
 import { Spinner } from "@/components/Spinner";
@@ -11,26 +12,24 @@ import {
   formatNotificationTime,
   markNotificationRead,
   notificationHref,
+  notifyNotificationsChanged,
   notificationTypeBadgeClass,
   notificationTypeLabel,
   type Notification,
 } from "@/lib/notifications";
 
 export function NotificationsList() {
+  const router = useRouter();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [markingId, setMarkingId] = useState<string | null>(null);
+  const [openingId, setOpeningId] = useState<string | null>(null);
 
-  const load = useCallback(async (keepVisible = false) => {
-    if (keepVisible) {
-      setRefreshing(true);
-    } else {
-      setLoading(true);
-    }
+  const load = useCallback(async () => {
+    setLoading(true);
     setError(null);
     try {
       const { notifications: list, nextCursor: cursor } =
@@ -40,11 +39,7 @@ export function NotificationsList() {
     } catch (e) {
       setError(apiErrorMessage(e, "Failed to load notifications"));
     } finally {
-      if (keepVisible) {
-        setRefreshing(false);
-      } else {
-        setLoading(false);
-      }
+      setLoading(false);
     }
   }, []);
 
@@ -81,6 +76,7 @@ export function NotificationsList() {
       setNotifications((current) =>
         current.map((item) => (item.id === updated.id ? updated : item)),
       );
+      notifyNotificationsChanged();
     } catch (e) {
       setError(apiErrorMessage(e, "Failed to mark notification as read"));
     } finally {
@@ -88,26 +84,30 @@ export function NotificationsList() {
     }
   }
 
+  async function handleOpen(notification: Notification, href: string) {
+    if (notification.readAt) {
+      router.push(href);
+      return;
+    }
+    setOpeningId(notification.id);
+    try {
+      await markNotificationRead(notification.id);
+      notifyNotificationsChanged();
+      router.push(href);
+    } catch (e) {
+      setError(apiErrorMessage(e, "Failed to mark notification as read"));
+      setOpeningId(null);
+    }
+  }
+
   const showInitialLoading = loading && notifications.length === 0;
 
   return (
     <div>
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold text-zinc-900">Notifications</h1>
-          <p className="mt-1 text-zinc-600">
-            Team alerts for warehouse events. Unread items stay highlighted.
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={() => void load(true)}
-          disabled={loading || refreshing}
-          className="rounded-lg border border-zinc-300 bg-white px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-50"
-        >
-          {refreshing ? "Refreshing…" : "Refresh"}
-        </button>
-      </div>
+      <h1 className="text-2xl font-semibold text-zinc-900">Notifications</h1>
+      <p className="mt-1 text-zinc-600">
+        Team alerts for warehouse events. Opening one marks it as read.
+      </p>
 
       {error ? (
         <p className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
@@ -135,8 +135,8 @@ export function NotificationsList() {
                       : "border-zinc-200 bg-white"
                   }`}
                 >
-                  <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
                         <p className="font-medium text-zinc-900">
                           {notification.title ?? "Notification"}
@@ -154,19 +154,32 @@ export function NotificationsList() {
                         {formatNotificationTime(notification.createdAt)}
                       </p>
                     </div>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex shrink-0 gap-2">
                       {href ? (
                         <Link
                           href={href}
+                          onClick={(event) => {
+                            event.preventDefault();
+                            if (
+                              openingId === notification.id ||
+                              markingId === notification.id
+                            ) {
+                              return;
+                            }
+                            void handleOpen(notification, href);
+                          }}
                           className="text-sm font-medium text-sky-700 hover:text-sky-900"
                         >
-                          Open
+                          {openingId === notification.id ? "Opening…" : "Open"}
                         </Link>
                       ) : null}
                       {unread ? (
                         <button
                           type="button"
-                          disabled={markingId === notification.id}
+                          disabled={
+                            markingId === notification.id ||
+                            openingId === notification.id
+                          }
                           onClick={() => void handleMarkRead(notification)}
                           className="text-sm font-medium text-zinc-700 hover:text-zinc-900 disabled:opacity-50"
                         >

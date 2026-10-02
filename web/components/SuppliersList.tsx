@@ -17,9 +17,7 @@ export function SuppliersList({ canManage }: SuppliersListProps) {
   const {
     suppliers,
     loading,
-    refreshing,
     error,
-    refresh,
     replaceSupplier,
     removeSupplier,
     prependSupplier,
@@ -64,29 +62,19 @@ export function SuppliersList({ canManage }: SuppliersListProps) {
               : " You can view the list; only admins can make changes."}
           </p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        {canManage && formMode === "closed" ? (
           <button
             type="button"
-            onClick={() => void refresh()}
-            disabled={loading || refreshing}
-            className="rounded-lg border border-zinc-300 bg-white px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-50"
+            onClick={() => {
+              setEditingSupplier(null);
+              setFormMode("create");
+              setActionError(null);
+            }}
+            className="rounded-lg bg-zinc-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-zinc-800"
           >
-            {refreshing ? "Refreshing…" : "Refresh"}
+            Add supplier
           </button>
-          {canManage && formMode === "closed" ? (
-            <button
-              type="button"
-              onClick={() => {
-                setEditingSupplier(null);
-                setFormMode("create");
-                setActionError(null);
-              }}
-              className="rounded-lg bg-zinc-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-zinc-800"
-            >
-              Add supplier
-            </button>
-          ) : null}
-        </div>
+        ) : null}
       </div>
 
       {displayError ? (
@@ -113,25 +101,23 @@ export function SuppliersList({ canManage }: SuppliersListProps) {
           {canManage ? " Add your first supplier to get started." : null}
         </p>
       ) : (
-        <div className={loading || refreshing ? "opacity-60" : undefined}>
-          <SuppliersListTable
-            suppliers={suppliers}
-            canManage={canManage}
-            deletingId={deletingId}
-            onEdit={(supplier) => {
-              setEditingSupplier(supplier);
-              setFormMode("edit");
-              setActionError(null);
-            }}
-            onDeleteStart={setDeletingId}
-            onDeleteEnd={() => setDeletingId(null)}
-            onDeleted={(id) => {
-              removeSupplier(id);
-              setActionError(null);
-            }}
-            onDeleteError={setActionError}
-          />
-        </div>
+        <SuppliersListTable
+          suppliers={suppliers}
+          canManage={canManage}
+          deletingId={deletingId}
+          onEdit={(supplier) => {
+            setEditingSupplier(supplier);
+            setFormMode("edit");
+            setActionError(null);
+          }}
+          onDeleteStart={setDeletingId}
+          onDeleteEnd={() => setDeletingId(null)}
+          onDeleted={(id) => {
+            removeSupplier(id);
+            setActionError(null);
+          }}
+          onDeleteError={setActionError}
+        />
       )}
     </div>
   );

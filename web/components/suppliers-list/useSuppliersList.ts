@@ -12,9 +12,7 @@ export function useSuppliersList() {
   return {
     suppliers: list.items,
     loading: list.loading,
-    refreshing: list.refreshing,
     error: list.error,
-    refresh: list.refresh,
     replaceSupplier: list.replaceItem,
     removeSupplier: list.removeItem,
     prependSupplier: list.prependItem,

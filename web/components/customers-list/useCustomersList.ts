@@ -12,9 +12,7 @@ export function useCustomersList() {
   return {
     customers: list.items,
     loading: list.loading,
-    refreshing: list.refreshing,
     error: list.error,
-    refresh: list.refresh,
     replaceCustomer: list.replaceItem,
     removeCustomer: list.removeItem,
     prependCustomer: list.prependItem,

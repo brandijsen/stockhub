@@ -85,3 +85,12 @@ export async function markNotificationRead(id: string): Promise<Notification> {
   );
   return data.notification;
 }
+
+export const NOTIFICATIONS_CHANGED_EVENT = "stockhub:notifications-changed";
+
+export function notifyNotificationsChanged(): void {
+  if (typeof window === "undefined") {
+    return;
+  }
+  window.dispatchEvent(new Event(NOTIFICATIONS_CHANGED_EVENT));
+}

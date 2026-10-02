@@ -15,33 +15,20 @@ export function usePartyList<T extends PartyRecord>(
 ) {
   const [items, setItems] = useState<T[]>([]);
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const load = useCallback(
-    async (options?: { silent?: boolean }) => {
-      const silent = options?.silent ?? false;
-      if (silent) {
-        setRefreshing(true);
-      } else {
-        setLoading(true);
-      }
-      setError(null);
-      try {
-        const list = await loadItems();
-        setItems(list);
-      } catch (e) {
-        setError(apiErrorMessage(e, loadErrorMessage));
-      } finally {
-        if (silent) {
-          setRefreshing(false);
-        } else {
-          setLoading(false);
-        }
-      }
-    },
-    [loadErrorMessage, loadItems],
-  );
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const list = await loadItems();
+      setItems(list);
+    } catch (e) {
+      setError(apiErrorMessage(e, loadErrorMessage));
+    } finally {
+      setLoading(false);
+    }
+  }, [loadErrorMessage, loadItems]);
 
   useEffect(() => {
     void load();
@@ -50,9 +37,7 @@ export function usePartyList<T extends PartyRecord>(
   return {
     items,
     loading,
-    refreshing,
     error,
-    refresh: () => load({ silent: true }),
     replaceItem: (updated: T) => {
       setItems((current) =>
         current.map((item) => (item.id === updated.id ? updated : item)),

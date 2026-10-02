@@ -3,7 +3,10 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-import { fetchUnreadNotificationsCount } from "@/lib/notifications";
+import {
+  fetchUnreadNotificationsCount,
+  NOTIFICATIONS_CHANGED_EVENT,
+} from "@/lib/notifications";
 
 function BellIcon({ className }: { className?: string }) {
   return (
@@ -41,9 +44,11 @@ export function NotificationsNavLink() {
     }
     void load();
     const intervalId = window.setInterval(() => void load(), 30_000);
+    window.addEventListener(NOTIFICATIONS_CHANGED_EVENT, load);
     return () => {
       cancelled = true;
       window.clearInterval(intervalId);
+      window.removeEventListener(NOTIFICATIONS_CHANGED_EVENT, load);
     };
   }, []);
 

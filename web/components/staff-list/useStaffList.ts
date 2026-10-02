@@ -10,14 +10,11 @@ const POLL_INTERVAL_MS = 60_000;
 export function useStaffList() {
   const [users, setUsers] = useState<StaffListResponse["users"]>([]);
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const loadStaff = useCallback(async (options?: { silent?: boolean }) => {
     const silent = options?.silent ?? false;
-    if (silent) {
-      setRefreshing(true);
-    } else {
+    if (!silent) {
       setLoading(true);
     }
     setError(null);
@@ -27,9 +24,7 @@ export function useStaffList() {
     } catch (e) {
       setError(apiErrorMessage(e, "Failed to load staff"));
     } finally {
-      if (silent) {
-        setRefreshing(false);
-      } else {
+      if (!silent) {
         setLoading(false);
       }
     }
@@ -47,9 +42,7 @@ export function useStaffList() {
   return {
     users,
     loading,
-    refreshing,
     error,
-    refresh: () => loadStaff({ silent: true }),
     replaceUser: (updated: StaffListResponse["users"][number]) => {
       setUsers((current) =>
         current.map((user) => (user.id === updated.id ? updated : user)),
