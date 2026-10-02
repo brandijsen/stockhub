@@ -10,6 +10,13 @@ import {
 } from "../serialize";
 import { validateCustomerOrderLines } from "../validate-lines";
 
+class CustomerOrderRejected extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "CustomerOrderRejected";
+  }
+}
+
 export async function createCustomerOrder(
   req: Request,
   res: Response,
@@ -60,10 +67,27 @@ export async function createCustomerOrder(
       });
 
       for (const line of lines) {
-        await tx.article.update({
-          where: { id: line.articleId },
+        const updated = await tx.article.updateMany({
+          where: {
+            id: line.articleId,
+            stock: { gte: line.quantity },
+          },
           data: { stock: { decrement: line.quantity } },
         });
+        if (updated.count !== 1) {
+          const article = await tx.article.findUnique({
+            where: { id: line.articleId },
+            select: { code: true, stock: true },
+          });
+          if (!article) {
+            throw new CustomerOrderRejected(
+              "One or more articles were not found",
+            );
+          }
+          throw new CustomerOrderRejected(
+            `Insufficient stock for ${article.code} (available ${article.stock}, requested ${line.quantity})`,
+          );
+        }
         await tx.movement.create({
           data: {
             type: "UNLOAD",
@@ -84,6 +108,10 @@ export async function createCustomerOrder(
 
     res.status(201).json({ order: serializeCustomerOrder(order) });
   } catch (e) {
+    if (e instanceof CustomerOrderRejected) {
+      res.status(400).json({ error: e.message });
+      return;
+    }
     console.error(e);
     res.status(500).json({ error: "Failed to create customer order" });
   }
