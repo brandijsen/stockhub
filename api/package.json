@@ -6,7 +6,7 @@
     "dev": "tsx watch src/index.ts",
 "build": "prisma generate && tsc",
     "start": "node dist/index.js",
-    "lint": "echo 'no linter'",
+    "lint": "tsc --noEmit",
     "db:validate": "dotenv -e ../.env.example -- prisma validate",
     "db:generate": "dotenv -e ../.env -- prisma generate",
     "db:migrate": "dotenv -e ../.env -- prisma migrate dev",
