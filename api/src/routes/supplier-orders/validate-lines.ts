@@ -1,4 +1,4 @@
-import { prisma } from "../../lib/prisma";
+import { loadOrderLineArticles } from "../../lib/order-lines";
 
 export type OrderLineInput = {
   articleId: string;
@@ -11,30 +11,16 @@ export async function validateSupplierOrderLines(
   | { ok: true; articles: { id: string; code: string; name: string }[] }
   | { ok: false; error: string }
 > {
-  const articleIds = lines.map((line) => line.articleId);
-  if (new Set(articleIds).size !== articleIds.length) {
-    return {
-      ok: false,
-      error: "Each article can appear only once in the order.",
-    };
+  const check = await loadOrderLineArticles(
+    lines.map((line) => line.articleId),
+    (code) => `Article ${code} is inactive and cannot be ordered`,
+  );
+  if (!check.ok) {
+    return check;
   }
 
-  const articles = await prisma.article.findMany({
-    where: { id: { in: articleIds } },
-    select: { id: true, code: true, name: true, isActive: true },
-  });
-
-  if (articles.length !== articleIds.length) {
-    return { ok: false, error: "One or more articles were not found" };
-  }
-
-  const inactive = articles.find((article) => !article.isActive);
-  if (inactive) {
-    return {
-      ok: false,
-      error: `Article ${inactive.code} is inactive and cannot be ordered`,
-    };
-  }
-
-  return { ok: true, articles };
+  return {
+    ok: true,
+    articles: check.articles.map(({ id, code, name }) => ({ id, code, name })),
+  };
 }

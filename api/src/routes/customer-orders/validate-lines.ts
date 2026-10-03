@@ -1,4 +1,4 @@
-import { prisma } from "../../lib/prisma";
+import { loadOrderLineArticles } from "../../lib/order-lines";
 
 export type CustomerOrderLineInput = {
   articleId: string;
@@ -19,38 +19,15 @@ export async function validateCustomerOrderLines(
     }
   | { ok: false; error: string }
 > {
-  const articleIds = lines.map((line) => line.articleId);
-  if (new Set(articleIds).size !== articleIds.length) {
-    return {
-      ok: false,
-      error: "Each article can appear only once in the order.",
-    };
+  const check = await loadOrderLineArticles(
+    lines.map((line) => line.articleId),
+    (code) => `Article ${code} is inactive and cannot be sold`,
+  );
+  if (!check.ok) {
+    return check;
   }
 
-  const articles = await prisma.article.findMany({
-    where: { id: { in: articleIds } },
-    select: {
-      id: true,
-      code: true,
-      name: true,
-      stock: true,
-      isActive: true,
-    },
-  });
-
-  if (articles.length !== articleIds.length) {
-    return { ok: false, error: "One or more articles were not found" };
-  }
-
-  const inactive = articles.find((article) => !article.isActive);
-  if (inactive) {
-    return {
-      ok: false,
-      error: `Article ${inactive.code} is inactive and cannot be sold`,
-    };
-  }
-
-  const byId = new Map(articles.map((article) => [article.id, article]));
+  const byId = new Map(check.articles.map((article) => [article.id, article]));
   for (const line of lines) {
     const article = byId.get(line.articleId)!;
     if (article.stock < line.quantity) {
@@ -61,5 +38,5 @@ export async function validateCustomerOrderLines(
     }
   }
 
-  return { ok: true, articles };
+  return { ok: true, articles: check.articles };
 }

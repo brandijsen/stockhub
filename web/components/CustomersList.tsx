@@ -1,124 +1,51 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { PartyList, type PartyListCopy } from "@/components/party-list/PartyList";
+import {
+  createCustomer,
+  customerToFormValues,
+  deleteCustomer,
+  emptyCustomerForm,
+  fetchCustomers,
+  updateCustomer,
+} from "@/lib/customers";
 
-import { LoadingText } from "@/components/ContentSkeletons";
-import type { Customer } from "@/lib/customers";
-
-import { CustomerForm } from "./customers-list/CustomerForm";
-import { CustomersListTable } from "./customers-list/CustomersListTable";
-import { useCustomersList } from "./customers-list/useCustomersList";
+const copy: PartyListCopy = {
+  title: "Customers",
+  description: "Customer contacts for sales orders.",
+  manageHint: " Admins can add and edit customers.",
+  viewHint: " You can view the list; only admins can make changes.",
+  addLabel: "Add customer",
+  emptyLabel: "No customers yet.",
+  emptyManageHint: " Add your first customer to get started.",
+  newTitle: "New customer",
+  editTitle: "Edit customer",
+  createLabel: "Create customer",
+  idPrefix: "customer",
+  createError: "Failed to create customer",
+  updateError: "Failed to update customer",
+  deleteBlocked: "This customer has orders and cannot be deleted.",
+  deleteConfirm: (name) =>
+    `Delete customer "${name}"? This cannot be undone.`,
+  deleteError: "Failed to delete customer",
+};
 
 type CustomersListProps = {
   canManage: boolean;
 };
 
 export function CustomersList({ canManage }: CustomersListProps) {
-  const {
-    customers,
-    loading,
-    error,
-    replaceCustomer,
-    removeCustomer,
-    prependCustomer,
-  } = useCustomersList();
-
-  const [formMode, setFormMode] = useState<"closed" | "create" | "edit">(
-    "closed",
-  );
-  const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
-  const [actionError, setActionError] = useState<string | null>(null);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
-
-  const closeForm = useCallback(() => {
-    setFormMode("closed");
-    setEditingCustomer(null);
-    setActionError(null);
-  }, []);
-
-  const handleSaved = useCallback(
-    (customer: Customer) => {
-      if (formMode === "edit") {
-        replaceCustomer(customer);
-      } else {
-        prependCustomer(customer);
-      }
-      closeForm();
-    },
-    [closeForm, formMode, prependCustomer, replaceCustomer],
-  );
-
-  const displayError = actionError ?? error;
-
   return (
-    <div>
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold text-zinc-900">Customers</h1>
-          <p className="mt-1 text-zinc-600">
-            Customer contacts for sales orders.
-            {canManage
-              ? " Admins can add and edit customers."
-              : " You can view the list; only admins can make changes."}
-          </p>
-        </div>
-        {canManage && formMode === "closed" ? (
-          <button
-            type="button"
-            onClick={() => {
-              setEditingCustomer(null);
-              setFormMode("create");
-              setActionError(null);
-            }}
-            className="rounded-lg bg-zinc-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-zinc-800"
-          >
-            Add customer
-          </button>
-        ) : null}
-      </div>
-
-      {displayError ? (
-        <p className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
-          {displayError}
-        </p>
-      ) : null}
-
-      {formMode !== "closed" ? (
-        <div className="mt-6">
-          <CustomerForm
-            customer={formMode === "edit" ? editingCustomer : null}
-            onSaved={handleSaved}
-            onCancel={closeForm}
-          />
-        </div>
-      ) : null}
-
-      {loading && customers.length === 0 ? (
-        <LoadingText />
-      ) : customers.length === 0 ? (
-        <p className="mt-8 text-zinc-600">
-          No customers yet.
-          {canManage ? " Add your first customer to get started." : null}
-        </p>
-      ) : (
-        <CustomersListTable
-          customers={customers}
-          canManage={canManage}
-          deletingId={deletingId}
-          onEdit={(customer) => {
-            setEditingCustomer(customer);
-            setFormMode("edit");
-            setActionError(null);
-          }}
-          onDeleteStart={setDeletingId}
-          onDeleteEnd={() => setDeletingId(null)}
-          onDeleted={(id) => {
-            removeCustomer(id);
-            setActionError(null);
-          }}
-          onDeleteError={setActionError}
-        />
-      )}
-    </div>
+    <PartyList
+      canManage={canManage}
+      loadItems={fetchCustomers}
+      loadErrorMessage="Failed to load customers"
+      emptyForm={emptyCustomerForm}
+      toFormValues={customerToFormValues}
+      createItem={createCustomer}
+      updateItem={updateCustomer}
+      deleteItem={deleteCustomer}
+      copy={copy}
+    />
   );
 }

@@ -2,48 +2,51 @@
 
 import { Spinner } from "@/components/Spinner";
 import { apiErrorMessage } from "@/lib/api-client";
-import { deleteCustomer, type Customer } from "@/lib/customers";
 
-type CustomersListTableProps = {
-  customers: Customer[];
+import type { PartyListCopy, PartyRecord } from "./types";
+
+type PartyTableProps<T extends PartyRecord> = {
+  items: T[];
   canManage: boolean;
   deletingId: string | null;
-  onEdit: (customer: Customer) => void;
+  deleteItem: (id: string) => Promise<void>;
+  copy: PartyListCopy;
+  onEdit: (item: T) => void;
   onDeleteStart: (id: string) => void;
   onDeleteEnd: () => void;
   onDeleted: (id: string) => void;
   onDeleteError: (message: string) => void;
 };
 
-export function CustomersListTable({
-  customers,
+export function PartyTable<T extends PartyRecord>({
+  items,
   canManage,
   deletingId,
+  deleteItem,
+  copy,
   onEdit,
   onDeleteStart,
   onDeleteEnd,
   onDeleted,
   onDeleteError,
-}: CustomersListTableProps) {
-  async function handleDelete(customer: Customer) {
-    if (customer.orderCount > 0) {
-      onDeleteError("This customer has orders and cannot be deleted.");
+}: PartyTableProps<T>) {
+  async function handleDelete(item: T) {
+    if (item.orderCount > 0) {
+      onDeleteError(copy.deleteBlocked);
       return;
     }
 
-    const confirmed = window.confirm(
-      `Delete customer "${customer.name}"? This cannot be undone.`,
-    );
+    const confirmed = window.confirm(copy.deleteConfirm(item.name));
     if (!confirmed) {
       return;
     }
 
-    onDeleteStart(customer.id);
+    onDeleteStart(item.id);
     try {
-      await deleteCustomer(customer.id);
-      onDeleted(customer.id);
+      await deleteItem(item.id);
+      onDeleted(item.id);
     } catch (e) {
-      onDeleteError(apiErrorMessage(e, "Failed to delete customer"));
+      onDeleteError(apiErrorMessage(e, copy.deleteError));
     } finally {
       onDeleteEnd();
     }
@@ -64,35 +67,33 @@ export function CustomersListTable({
           </tr>
         </thead>
         <tbody className="divide-y divide-zinc-100 bg-white">
-          {customers.map((customer) => (
-            <tr key={customer.id} className="hover:bg-zinc-50/80">
-              <td className="px-3 py-2 font-medium text-zinc-900">
-                {customer.name}
-              </td>
-              <td className="px-3 py-2 text-zinc-600">{customer.email ?? "—"}</td>
+          {items.map((item) => (
+            <tr key={item.id} className="hover:bg-zinc-50/80">
+              <td className="px-3 py-2 font-medium text-zinc-900">{item.name}</td>
+              <td className="px-3 py-2 text-zinc-600">{item.email ?? "—"}</td>
               <td className="whitespace-nowrap px-3 py-2 text-zinc-600">
-                {customer.phone ?? "—"}
+                {item.phone ?? "—"}
               </td>
               <td className="whitespace-nowrap px-3 py-2 text-zinc-600">
-                {customer.orderCount}
+                {item.orderCount}
               </td>
               {canManage ? (
                 <td className="px-3 py-2">
                   <div className="flex flex-wrap gap-2">
                     <button
                       type="button"
-                      onClick={() => onEdit(customer)}
+                      onClick={() => onEdit(item)}
                       className="text-sm font-medium text-sky-700 hover:text-sky-900"
                     >
                       Edit
                     </button>
                     <button
                       type="button"
-                      disabled={deletingId === customer.id}
-                      onClick={() => void handleDelete(customer)}
+                      disabled={deletingId === item.id}
+                      onClick={() => void handleDelete(item)}
                       className="text-sm font-medium text-red-700 hover:text-red-900 disabled:opacity-50"
                     >
-                      {deletingId === customer.id ? (
+                      {deletingId === item.id ? (
                         <span className="inline-flex items-center gap-1">
                           <Spinner className="h-3 w-3" />
                           Deleting…

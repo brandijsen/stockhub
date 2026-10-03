@@ -1,8 +1,6 @@
 "use client";
 
-import Link from "next/link";
-import { useEffect, useState } from "react";
-
+import { UnreadNavLink } from "@/components/UnreadNavLink";
 import {
   fetchUnreadNotificationsCount,
   NOTIFICATIONS_CHANGED_EVENT,
@@ -28,47 +26,13 @@ function BellIcon({ className }: { className?: string }) {
 }
 
 export function NotificationsNavLink() {
-  const [unread, setUnread] = useState(0);
-
-  useEffect(() => {
-    let cancelled = false;
-    async function load() {
-      try {
-        const total = await fetchUnreadNotificationsCount();
-        if (!cancelled) {
-          setUnread(total);
-        }
-      } catch {
-        /* ignore */
-      }
-    }
-    void load();
-    const intervalId = window.setInterval(() => void load(), 30_000);
-    window.addEventListener(NOTIFICATIONS_CHANGED_EVENT, load);
-    return () => {
-      cancelled = true;
-      window.clearInterval(intervalId);
-      window.removeEventListener(NOTIFICATIONS_CHANGED_EVENT, load);
-    };
-  }, []);
-
   return (
-    <Link
+    <UnreadNavLink
       href="/notifications"
-      aria-label={
-        unread > 0
-          ? `Notifications, ${unread} unread`
-          : "Notifications"
-      }
-      title="Notifications"
-      className="relative inline-flex h-9 w-9 items-center justify-center rounded-lg text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
-    >
-      <BellIcon className="h-5 w-5" />
-      {unread > 0 ? (
-        <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-semibold text-white">
-          {unread > 9 ? "9+" : unread}
-        </span>
-      ) : null}
-    </Link>
+      label="Notifications"
+      fetchCount={fetchUnreadNotificationsCount}
+      icon={<BellIcon className="h-5 w-5" />}
+      refreshEvent={NOTIFICATIONS_CHANGED_EVENT}
+    />
   );
 }

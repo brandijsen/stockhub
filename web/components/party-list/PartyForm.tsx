@@ -4,41 +4,47 @@ import { type FormEvent, useEffect, useState } from "react";
 
 import { articleFormInputClass } from "@/components/article-form/input-styles";
 import { apiErrorMessage } from "@/lib/api-client";
-import {
-  createCustomer,
-  emptyCustomerForm,
-  customerToFormValues,
-  type Customer,
-  type CustomerFormValues,
-  updateCustomer,
-} from "@/lib/customers";
 
-type CustomerFormProps = {
-  customer: Customer | null;
-  onSaved: (customer: Customer) => void;
+import type { PartyFormValues, PartyListCopy, PartyRecord } from "./types";
+
+type PartyFormProps<T extends PartyRecord> = {
+  item: T | null;
+  emptyForm: () => PartyFormValues;
+  toFormValues: (item: T) => PartyFormValues;
+  createItem: (values: PartyFormValues) => Promise<T>;
+  updateItem: (id: string, values: PartyFormValues) => Promise<T>;
+  copy: PartyListCopy;
+  onSaved: (item: T) => void;
   onCancel: () => void;
 };
 
-export function CustomerForm({
-  customer,
+export function PartyForm<T extends PartyRecord>({
+  item,
+  emptyForm,
+  toFormValues,
+  createItem,
+  updateItem,
+  copy,
   onSaved,
   onCancel,
-}: CustomerFormProps) {
-  const isEdit = customer != null;
-  const [values, setValues] = useState<CustomerFormValues>(() =>
-    customer ? customerToFormValues(customer) : emptyCustomerForm(),
+}: PartyFormProps<T>) {
+  const isEdit = item != null;
+  const [values, setValues] = useState<PartyFormValues>(() =>
+    item ? toFormValues(item) : emptyForm(),
   );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    setValues(customer ? customerToFormValues(customer) : emptyCustomerForm());
+    setValues(item ? toFormValues(item) : emptyForm());
     setError(null);
-  }, [customer]);
+  }, [emptyForm, item, toFormValues]);
 
-  const canSubmit =
-    values.name.trim().length > 0 &&
-    !saving;
+  const canSubmit = values.name.trim().length > 0 && !saving;
+
+  function setField(key: keyof PartyFormValues, value: string) {
+    setValues((current) => ({ ...current, [key]: value }));
+  }
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
@@ -50,16 +56,11 @@ export function CustomerForm({
     setError(null);
     try {
       const saved = isEdit
-        ? await updateCustomer(customer.id, values)
-        : await createCustomer(values);
+        ? await updateItem(item.id, values)
+        : await createItem(values);
       onSaved(saved);
     } catch (e) {
-      setError(
-        apiErrorMessage(
-          e,
-          isEdit ? "Failed to update customer" : "Failed to create customer",
-        ),
-      );
+      setError(apiErrorMessage(e, isEdit ? copy.updateError : copy.createError));
     } finally {
       setSaving(false);
     }
@@ -68,7 +69,7 @@ export function CustomerForm({
   return (
     <div className="rounded-lg border border-zinc-200 bg-zinc-50/80 p-4 sm:p-6">
       <h2 className="text-lg font-medium text-zinc-900">
-        {isEdit ? "Edit customer" : "New customer"}
+        {isEdit ? copy.editTitle : copy.newTitle}
       </h2>
       <form
         onSubmit={(event) => void handleSubmit(event)}
@@ -77,39 +78,35 @@ export function CustomerForm({
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
             <label
-              htmlFor="customer-name"
+              htmlFor={`${copy.idPrefix}-name`}
               className="block text-sm font-medium text-zinc-600"
             >
               Name
             </label>
             <input
-              id="customer-name"
+              id={`${copy.idPrefix}-name`}
               type="text"
               required
               value={values.name}
               disabled={saving}
-              onChange={(event) =>
-                setValues((current) => ({ ...current, name: event.target.value }))
-              }
+              onChange={(event) => setField("name", event.target.value)}
               className={`mt-1 ${articleFormInputClass}`}
             />
           </div>
           <div>
             <label
-              htmlFor="customer-email"
+              htmlFor={`${copy.idPrefix}-email`}
               className="block text-sm font-medium text-zinc-600"
             >
               Email <span className="font-normal text-zinc-400">(optional)</span>
             </label>
             <input
-              id="customer-email"
+              id={`${copy.idPrefix}-email`}
               type="email"
               autoComplete="email"
               value={values.email}
               disabled={saving}
-              onChange={(event) =>
-                setValues((current) => ({ ...current, email: event.target.value }))
-              }
+              onChange={(event) => setField("email", event.target.value)}
               className={`mt-1 ${articleFormInputClass}`}
             />
           </div>
@@ -117,38 +114,34 @@ export function CustomerForm({
 
         <div>
           <label
-            htmlFor="customer-phone"
+            htmlFor={`${copy.idPrefix}-phone`}
             className="block text-sm font-medium text-zinc-600"
           >
             Phone <span className="font-normal text-zinc-400">(optional)</span>
           </label>
           <input
-            id="customer-phone"
+            id={`${copy.idPrefix}-phone`}
             type="tel"
             value={values.phone}
             disabled={saving}
-            onChange={(event) =>
-              setValues((current) => ({ ...current, phone: event.target.value }))
-            }
+            onChange={(event) => setField("phone", event.target.value)}
             className={`mt-1 ${articleFormInputClass}`}
           />
         </div>
 
         <div>
           <label
-            htmlFor="customer-address"
+            htmlFor={`${copy.idPrefix}-address`}
             className="block text-sm font-medium text-zinc-600"
           >
             Address <span className="font-normal text-zinc-400">(optional)</span>
           </label>
           <textarea
-            id="customer-address"
+            id={`${copy.idPrefix}-address`}
             rows={3}
             value={values.address}
             disabled={saving}
-            onChange={(event) =>
-              setValues((current) => ({ ...current, address: event.target.value }))
-            }
+            onChange={(event) => setField("address", event.target.value)}
             className={`mt-1 ${articleFormInputClass}`}
           />
         </div>
@@ -165,7 +158,7 @@ export function CustomerForm({
             disabled={!canSubmit}
             className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {saving ? "Saving…" : isEdit ? "Save changes" : "Create customer"}
+            {saving ? "Saving…" : isEdit ? "Save changes" : copy.createLabel}
           </button>
           <button
             type="button"
