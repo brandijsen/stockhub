@@ -20,6 +20,12 @@ const { notifyCustomerOrderCreated } = await import(
 const { notifyCustomerOrderPickedUp } = await import(
   "../src/lib/notify-customer-order-picked-up"
 );
+const { notifyCustomerOrderUpdated } = await import(
+  "../src/lib/notify-customer-order-updated"
+);
+const { notifyCustomerOrderCancelled } = await import(
+  "../src/lib/notify-customer-order-cancelled"
+);
 const { notifySupplierOrderClosed } = await import(
   "../src/lib/notify-supplier-order-closed"
 );
@@ -102,6 +108,52 @@ describe("team notifications", () => {
         }),
       ],
     });
+  });
+
+  it("links an updated customer order", async () => {
+    await notifyCustomerOrderUpdated({
+      customerOrderId: "order1",
+      orderCode: "CO-000001",
+      customerName: "Ada",
+      actorUserId: "user1",
+      actorName: "Ada Lovelace",
+    });
+
+    expect(prisma.notification.createMany).toHaveBeenCalledWith({
+      data: [
+        expect.objectContaining({
+          userId: "user2",
+          type: "CUSTOMER_ORDER_UPDATED",
+          customerOrderId: "order1",
+          title: "Customer order updated",
+          body: "Ada Lovelace updated order CO-000001 for Ada. Stock was adjusted.",
+        }),
+      ],
+    });
+  });
+
+  it("describes a cancelled customer order without linking it", async () => {
+    await notifyCustomerOrderCancelled({
+      orderCode: "CO-000001",
+      customerName: "Ada",
+      actorUserId: "user1",
+      actorName: "Ada Lovelace",
+    });
+
+    expect(prisma.notification.createMany).toHaveBeenCalledWith({
+      data: [
+        expect.objectContaining({
+          userId: "user2",
+          type: "CUSTOMER_ORDER_CANCELLED",
+          title: "Customer order cancelled",
+          body: "Ada Lovelace cancelled order CO-000001 for Ada. Stock was restored.",
+        }),
+      ],
+    });
+    const payload = prisma.notification.createMany.mock.calls[0][0] as {
+      data: { customerOrderId?: string }[];
+    };
+    expect(payload.data[0].customerOrderId).toBeUndefined();
   });
 
   it("links a low-stock article", async () => {

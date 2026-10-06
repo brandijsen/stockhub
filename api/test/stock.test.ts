@@ -16,6 +16,14 @@ vi.mock("../src/lib/notify-customer-order-created", () => ({
   notifyCustomerOrderCreated: vi.fn(),
 }));
 
+vi.mock("../src/lib/notify-customer-order-updated", () => ({
+  notifyCustomerOrderUpdated: vi.fn(),
+}));
+
+vi.mock("../src/lib/notify-customer-order-cancelled", () => ({
+  notifyCustomerOrderCancelled: vi.fn(),
+}));
+
 vi.mock("../src/lib/notify-low-stock", async () => {
   const actual = await vi.importActual<
     typeof import("../src/lib/notify-low-stock")
@@ -54,6 +62,12 @@ const { completeSupplierOrderChecking } = await import(
 );
 const { notifyCustomerOrderCreated } = await import(
   "../src/lib/notify-customer-order-created"
+);
+const { notifyCustomerOrderUpdated } = await import(
+  "../src/lib/notify-customer-order-updated"
+);
+const { notifyCustomerOrderCancelled } = await import(
+  "../src/lib/notify-customer-order-cancelled"
 );
 const { notifyLowStock } = await import("../src/lib/notify-low-stock");
 const { notifySupplierOrderClosed } = await import(
@@ -490,6 +504,7 @@ function openCustomerOrder(lines: { articleId: string; quantity: number }[]) {
     id: "order1",
     code: "CO-000001",
     status: "OPEN" as const,
+    customer: { name: "Atelier Spiga" },
     lines,
   };
 }
@@ -583,6 +598,14 @@ describe("customer order edit and cancel", () => {
       }),
     });
     expect(notifyLowStock).not.toHaveBeenCalled();
+    expect(notifyCustomerOrderUpdated).toHaveBeenCalledWith(
+      expect.objectContaining({
+        customerOrderId: "order1",
+        orderCode: "CO-000001",
+        customerName: "Atelier Spiga",
+        actorUserId: "user1",
+      }),
+    );
     expect(res.statusCode).toBe(200);
   });
 
@@ -675,6 +698,7 @@ describe("customer order edit and cancel", () => {
     );
 
     expect(prismaMock.$transaction).not.toHaveBeenCalled();
+    expect(notifyCustomerOrderUpdated).not.toHaveBeenCalled();
     expect(res.statusCode).toBe(409);
     expect(res.body).toEqual({
       error: "Only open orders allow this action",
@@ -715,6 +739,13 @@ describe("customer order edit and cancel", () => {
     expect(prismaMock.customerOrder.delete).toHaveBeenCalledWith({
       where: { id: "order1" },
     });
+    expect(notifyCustomerOrderCancelled).toHaveBeenCalledWith(
+      expect.objectContaining({
+        orderCode: "CO-000001",
+        customerName: "Atelier Spiga",
+        actorUserId: "user1",
+      }),
+    );
     expect(res.statusCode).toBe(200);
     expect(res.body).toEqual({ ok: true });
   });
@@ -733,6 +764,7 @@ describe("customer order edit and cancel", () => {
 
     expect(prismaMock.$transaction).not.toHaveBeenCalled();
     expect(prismaMock.article.update).not.toHaveBeenCalled();
+    expect(notifyCustomerOrderCancelled).not.toHaveBeenCalled();
     expect(res.statusCode).toBe(409);
   });
 });

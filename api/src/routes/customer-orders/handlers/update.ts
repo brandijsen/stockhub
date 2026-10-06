@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
 
+import { notifyCustomerOrderUpdated } from "../../../lib/notify-customer-order-updated";
 import { notifyLowStock } from "../../../lib/notify-low-stock";
 import { prisma } from "../../../lib/prisma";
 import { displayName } from "../../auth/session";
@@ -113,23 +114,30 @@ export async function updateCustomerOrder(
       ORDER_TRANSACTION,
     );
 
-    if (lowStockArticles.length > 0) {
-      const actor = await prisma.user.findUnique({
-        where: { id: session.sub },
-        select: { firstName: true, lastName: true },
+    const actor = await prisma.user.findUnique({
+      where: { id: session.sub },
+      select: { firstName: true, lastName: true },
+    });
+    const actorName = actor ? displayName(actor) : "A team member";
+
+    await notifyCustomerOrderUpdated({
+      customerOrderId: order.id,
+      orderCode: order.code,
+      customerName: order.customer.name,
+      actorUserId: session.sub,
+      actorName,
+    });
+
+    for (const article of lowStockArticles) {
+      await notifyLowStock({
+        articleId: article.id,
+        articleCode: article.code,
+        articleName: article.name,
+        stock: article.stock,
+        minThreshold: article.minThreshold,
+        actorUserId: session.sub,
+        actorName,
       });
-      const actorName = actor ? displayName(actor) : "A team member";
-      for (const article of lowStockArticles) {
-        await notifyLowStock({
-          articleId: article.id,
-          articleCode: article.code,
-          articleName: article.name,
-          stock: article.stock,
-          minThreshold: article.minThreshold,
-          actorUserId: session.sub,
-          actorName,
-        });
-      }
     }
 
     res.json({ order: serializeCustomerOrder(order) });

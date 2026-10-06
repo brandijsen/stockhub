@@ -1,6 +1,8 @@
 import type { Request, Response } from "express";
 
+import { notifyCustomerOrderCancelled } from "../../../lib/notify-customer-order-cancelled";
 import { prisma } from "../../../lib/prisma";
+import { displayName } from "../../auth/session";
 import type { AuthenticatedRequest } from "../../../middleware/require-auth";
 import { CustomerOrderConflict, CustomerOrderRejected } from "../errors";
 import { assertOpenCustomerOrder } from "../open-guard";
@@ -22,6 +24,7 @@ export async function deleteCustomerOrder(
         id: true,
         code: true,
         status: true,
+        customer: { select: { name: true } },
         lines: { select: { articleId: true, quantity: true } },
       },
     });
@@ -54,6 +57,19 @@ export async function deleteCustomerOrder(
 
       await tx.customerOrder.delete({ where: { id } });
     }, ORDER_TRANSACTION);
+
+    const actor = await prisma.user.findUnique({
+      where: { id: session.sub },
+      select: { firstName: true, lastName: true },
+    });
+    const actorName = actor ? displayName(actor) : "A team member";
+
+    await notifyCustomerOrderCancelled({
+      orderCode: existing.code,
+      customerName: existing.customer.name,
+      actorUserId: session.sub,
+      actorName,
+    });
 
     res.json({ ok: true });
   } catch (e) {
