@@ -139,7 +139,7 @@ export async function createCustomerOrder(
         where: { id: created.id },
         include: customerOrderInclude,
       });
-    });
+    }, { maxWait: 10_000, timeout: 20_000 });
 
     const actor = await prisma.user.findUnique({
       where: { id: session.sub },
