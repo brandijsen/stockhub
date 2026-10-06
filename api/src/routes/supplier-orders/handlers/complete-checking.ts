@@ -1,6 +1,9 @@
 import type { Request, Response } from "express";
 
+import { notifySupplierOrderChecked } from "../../../lib/notify-supplier-order-checked";
 import { prisma } from "../../../lib/prisma";
+import { displayName } from "../../auth/session";
+import type { AuthenticatedRequest } from "../../../middleware/require-auth";
 import { assertArrivedCheckingStatus } from "../checking-guard";
 import { completeCheckingSchema } from "../schemas";
 import {
@@ -13,6 +16,7 @@ export async function completeSupplierOrderChecking(
   res: Response,
 ): Promise<void> {
   const { id } = req.params;
+  const session = (req as AuthenticatedRequest).sessionUser;
   const parsed = completeCheckingSchema.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({
@@ -76,6 +80,21 @@ export async function completeSupplierOrderChecking(
         },
         include: supplierOrderInclude,
       });
+    });
+
+    const actor = await prisma.user.findUnique({
+      where: { id: session.sub },
+      select: { firstName: true, lastName: true },
+    });
+    const actorName = actor ? displayName(actor) : "A team member";
+
+    await notifySupplierOrderChecked({
+      supplierOrderId: order.id,
+      orderCode: order.code,
+      supplierName: order.supplier.name,
+      hasNonConformLine: parsed.data.lines.some((line) => !line.lineConform),
+      actorUserId: session.sub,
+      actorName,
     });
 
     res.json({ order: serializeSupplierOrder(order) });

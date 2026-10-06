@@ -3,6 +3,7 @@
 import { type FormEvent, useMemo, useState } from "react";
 
 import { articleFormInputClass } from "@/components/article-form/input-styles";
+import { useConfirmDialog } from "@/components/ConfirmDialog";
 import { Spinner } from "@/components/Spinner";
 import { apiErrorMessage } from "@/lib/api-client";
 import {
@@ -31,6 +32,7 @@ export function SupplierOrderCloseSection({
   const [adminCloseNote, setAdminCloseNote] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { confirm, dialog } = useConfirmDialog();
 
   const canSubmit =
     !saving &&
@@ -48,7 +50,12 @@ export function SupplierOrderCloseSection({
         ? "close this order as succeeded and load stock"
         : "close this order with reported issues (no automatic stock load)";
 
-    if (!window.confirm(`Confirm you want to ${label}?`)) {
+    const confirmed = await confirm({
+      title: "Close order",
+      message: `Confirm you want to ${label}?`,
+      confirmLabel: "Close order",
+    });
+    if (!confirmed) {
       return;
     }
 
@@ -69,6 +76,8 @@ export function SupplierOrderCloseSection({
   }
 
   return (
+    <>
+    {dialog}
     <form
       onSubmit={(event) => void handleSubmit(event)}
       className="mt-6 rounded-lg border border-violet-200 bg-violet-50/40 p-4 sm:p-6"
@@ -186,5 +195,6 @@ export function SupplierOrderCloseSection({
         )}
       </button>
     </form>
+    </>
   );
 }

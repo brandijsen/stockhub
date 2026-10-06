@@ -29,6 +29,7 @@ export type PartyListCopy = {
   createError: string;
   updateError: string;
   deleteBlocked: string;
+  deleteTitle: string;
   deleteConfirm: (name: string) => string;
   deleteError: string;
 };

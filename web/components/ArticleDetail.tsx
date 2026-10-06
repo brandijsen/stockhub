@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import { useConfirmDialog } from "@/components/ConfirmDialog";
 import { LoadingText } from "@/components/ContentSkeletons";
 import { Spinner } from "@/components/Spinner";
 import { ArticleStockAdjustSection } from "@/components/articles/ArticleStockAdjustSection";
@@ -35,6 +36,7 @@ function DetailRow({
 }
 
 export function ArticleDetail({ articleId, canManage }: ArticleDetailProps) {
+  const { confirm, dialog } = useConfirmDialog();
   const router = useRouter();
   const [article, setArticle] = useState<Article | null>(null);
   const [loading, setLoading] = useState(true);
@@ -70,7 +72,16 @@ export function ArticleDetail({ articleId, canManage }: ArticleDetailProps) {
   }, [articleId]);
 
   async function handleDelete() {
-    if (!article || !window.confirm(`Delete article "${article.code}"?`)) {
+    if (!article) {
+      return;
+    }
+    const confirmed = await confirm({
+      title: "Delete article",
+      message: `Delete article "${article.code}"?`,
+      confirmLabel: "Delete",
+      tone: "danger",
+    });
+    if (!confirmed) {
       return;
     }
     setDeleting(true);
@@ -120,6 +131,7 @@ export function ArticleDetail({ articleId, canManage }: ArticleDetailProps) {
 
   return (
     <div>
+      {dialog}
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <p className="font-mono text-sm text-zinc-500">{article.code}</p>

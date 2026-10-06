@@ -1,6 +1,8 @@
 import type { Request, Response } from "express";
 
+import { notifySupplierOrderClosed } from "../../../lib/notify-supplier-order-closed";
 import { prisma } from "../../../lib/prisma";
+import { displayName } from "../../auth/session";
 import type { AuthenticatedRequest } from "../../../middleware/require-auth";
 import { assertCheckedStatus } from "../checked-guard";
 import { closeSupplierOrderSchema } from "../schemas";
@@ -114,6 +116,22 @@ export async function closeSupplierOrder(
     const order = await prisma.supplierOrder.findUniqueOrThrow({
       where: { id },
       include: supplierOrderInclude,
+    });
+
+    const actor = await prisma.user.findUnique({
+      where: { id: session.sub },
+      select: { firstName: true, lastName: true },
+    });
+    const actorName = actor ? displayName(actor) : "A team member";
+
+    await notifySupplierOrderClosed({
+      supplierOrderId: order.id,
+      orderCode: order.code,
+      supplierName: order.supplier.name,
+      outcome,
+      adminCloseNote,
+      actorUserId: session.sub,
+      actorName,
     });
 
     res.json({

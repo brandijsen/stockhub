@@ -8,6 +8,7 @@ export type Notification = {
   body: string;
   readAt: string | null;
   supplierOrderId: string | null;
+  customerOrderId: string | null;
   articleId: string | null;
   conversationId: string | null;
   createdAt: string;
@@ -26,6 +27,9 @@ export function notificationHref(notification: Notification): string | null {
   if (notification.supplierOrderId) {
     return `/supplier-orders/${notification.supplierOrderId}`;
   }
+  if (notification.customerOrderId) {
+    return `/customer-orders/${notification.customerOrderId}`;
+  }
   if (notification.articleId) {
     return `/articles/${notification.articleId}`;
   }
@@ -41,7 +45,11 @@ export function formatNotificationTime(iso: string): string {
 
 const NOTIFICATION_TYPE_LABELS: Record<string, string> = {
   STOCK_ADJUSTMENT: "Stock",
+  LOW_STOCK: "Low stock",
   SUPPLIER_ORDER_ARRIVED: "Supplier order",
+  SUPPLIER_ORDER_CHECKED: "Goods checked",
+  SUPPLIER_ORDER_CLOSED: "Order closed",
+  CUSTOMER_ORDER_CREATED: "Customer order",
   DIRECT_MESSAGE: "Message",
 };
 
@@ -53,8 +61,16 @@ export function notificationTypeBadgeClass(type: string): string {
   switch (type) {
     case "STOCK_ADJUSTMENT":
       return "bg-amber-100 text-amber-900";
+    case "LOW_STOCK":
+      return "bg-red-100 text-red-900";
     case "SUPPLIER_ORDER_ARRIVED":
       return "bg-sky-100 text-sky-900";
+    case "SUPPLIER_ORDER_CHECKED":
+      return "bg-indigo-100 text-indigo-900";
+    case "SUPPLIER_ORDER_CLOSED":
+      return "bg-violet-100 text-violet-900";
+    case "CUSTOMER_ORDER_CREATED":
+      return "bg-emerald-100 text-emerald-900";
     case "DIRECT_MESSAGE":
       return "bg-violet-100 text-violet-900";
     default:

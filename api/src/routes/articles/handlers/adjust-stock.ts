@@ -1,5 +1,9 @@
 import type { Request, Response } from "express";
 
+import {
+  droppedBelowMinimum,
+  notifyLowStock,
+} from "../../../lib/notify-low-stock";
 import { notifyStockAdjustment } from "../../../lib/notify-stock-adjustment";
 import { prisma } from "../../../lib/prisma";
 import { displayName } from "../../auth/session";
@@ -33,6 +37,7 @@ export async function adjustArticleStock(
         code: true,
         name: true,
         stock: true,
+        minThreshold: true,
       },
     });
 
@@ -87,6 +92,18 @@ export async function adjustArticleStock(
       actorName,
       note: trimmedNote,
     });
+
+    if (droppedBelowMinimum(existing.stock, newStock, existing.minThreshold)) {
+      await notifyLowStock({
+        articleId: existing.id,
+        articleCode: existing.code,
+        articleName: existing.name,
+        stock: newStock,
+        minThreshold: existing.minThreshold,
+        actorUserId: session.sub,
+        actorName,
+      });
+    }
 
     res.json({ article: serializeArticle(article) });
   } catch (e) {

@@ -1,7 +1,13 @@
 import type { Request, Response } from "express";
 
+import { notifyCustomerOrderCreated } from "../../../lib/notify-customer-order-created";
+import {
+  droppedBelowMinimum,
+  notifyLowStock,
+} from "../../../lib/notify-low-stock";
 import { generateOrderCode } from "../../../lib/order-code";
 import { prisma } from "../../../lib/prisma";
+import { displayName } from "../../auth/session";
 import type { AuthenticatedRequest } from "../../../middleware/require-auth";
 import { createCustomerOrderSchema } from "../schemas";
 import {
@@ -47,6 +53,14 @@ export async function createCustomerOrder(
       res.status(400).json({ error: lineCheck.error });
       return;
     }
+
+    const lowStockArticles: {
+      id: string;
+      code: string;
+      name: string;
+      stock: number;
+      minThreshold: number;
+    }[] = [];
 
     const order = await prisma.$transaction(async (tx) => {
       const code = await generateOrderCode(tx, "CO");
@@ -98,6 +112,27 @@ export async function createCustomerOrder(
             note: `Outbound for customer order ${code}`,
           },
         });
+
+        const updatedArticle = await tx.article.findUnique({
+          where: { id: line.articleId },
+          select: {
+            id: true,
+            code: true,
+            name: true,
+            stock: true,
+            minThreshold: true,
+          },
+        });
+        if (
+          updatedArticle &&
+          droppedBelowMinimum(
+            updatedArticle.stock + line.quantity,
+            updatedArticle.stock,
+            updatedArticle.minThreshold,
+          )
+        ) {
+          lowStockArticles.push(updatedArticle);
+        }
       }
 
       return tx.customerOrder.findUniqueOrThrow({
@@ -105,6 +140,32 @@ export async function createCustomerOrder(
         include: customerOrderInclude,
       });
     });
+
+    const actor = await prisma.user.findUnique({
+      where: { id: session.sub },
+      select: { firstName: true, lastName: true },
+    });
+    const actorName = actor ? displayName(actor) : "A team member";
+
+    await notifyCustomerOrderCreated({
+      customerOrderId: order.id,
+      orderCode: order.code,
+      customerName: order.customer.name,
+      actorUserId: session.sub,
+      actorName,
+    });
+
+    for (const article of lowStockArticles) {
+      await notifyLowStock({
+        articleId: article.id,
+        articleCode: article.code,
+        articleName: article.name,
+        stock: article.stock,
+        minThreshold: article.minThreshold,
+        actorUserId: session.sub,
+        actorName,
+      });
+    }
 
     res.status(201).json({ order: serializeCustomerOrder(order) });
   } catch (e) {

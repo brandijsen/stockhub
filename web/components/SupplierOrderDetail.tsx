@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import { useConfirmDialog } from "@/components/ConfirmDialog";
 import { LoadingText } from "@/components/ContentSkeletons";
 import {
   OrderDetailError,
@@ -34,6 +35,7 @@ export function SupplierOrderDetail({
   canManage,
 }: SupplierOrderDetailProps) {
   const router = useRouter();
+  const { confirm, dialog } = useConfirmDialog();
   const [order, setOrder] = useState<SupplierOrder | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -72,9 +74,11 @@ export function SupplierOrderDetail({
       return;
     }
 
-    const confirmed = window.confirm(
-      `Mark the order for ${order.supplier.name} as arrived? Other team members will be notified.`,
-    );
+    const confirmed = await confirm({
+      title: "Declare arrived",
+      message: `Mark the order for ${order.supplier.name} as arrived? Other team members will be notified.`,
+      confirmLabel: "Declare arrived",
+    });
     if (!confirmed) {
       return;
     }
@@ -96,9 +100,12 @@ export function SupplierOrderDetail({
       return;
     }
 
-    const confirmed = window.confirm(
-      `Cancel order for ${order.supplier.name}? This cannot be undone.`,
-    );
+    const confirmed = await confirm({
+      title: "Cancel order",
+      message: `Cancel order for ${order.supplier.name}? This cannot be undone.`,
+      confirmLabel: "Cancel order",
+      tone: "danger",
+    });
     if (!confirmed) {
       return;
     }
@@ -140,6 +147,7 @@ export function SupplierOrderDetail({
 
   return (
     <div>
+      {dialog}
       <OrderDetailHeader
         backHref="/supplier-orders"
         backLabel="Supplier orders"

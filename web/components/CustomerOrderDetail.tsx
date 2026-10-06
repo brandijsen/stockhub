@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 
+import { useConfirmDialog } from "@/components/ConfirmDialog";
 import { LoadingText } from "@/components/ContentSkeletons";
 import {
   OrderDetailError,
@@ -23,6 +24,7 @@ type CustomerOrderDetailProps = {
 };
 
 export function CustomerOrderDetail({ orderId }: CustomerOrderDetailProps) {
+  const { confirm, dialog } = useConfirmDialog();
   const [order, setOrder] = useState<CustomerOrder | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -60,9 +62,11 @@ export function CustomerOrderDetail({ orderId }: CustomerOrderDetailProps) {
       return;
     }
 
-    const confirmed = window.confirm(
-      "Confirm that the customer has picked up this order?",
-    );
+    const confirmed = await confirm({
+      title: "Confirm pickup",
+      message: "Confirm that the customer has picked up this order?",
+      confirmLabel: "Confirm pickup",
+    });
     if (!confirmed) {
       return;
     }
@@ -97,6 +101,7 @@ export function CustomerOrderDetail({ orderId }: CustomerOrderDetailProps) {
 
   return (
     <div>
+      {dialog}
       <OrderDetailHeader
         backHref="/customer-orders"
         backLabel="Customer orders"

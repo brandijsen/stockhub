@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 
+import { useConfirmDialog } from "@/components/ConfirmDialog";
+
 import {
   type StaffAssignableRole,
   type StaffUser,
@@ -45,6 +47,7 @@ export function StaffRoleCell({
     user.role === "ADMIN" ? "ADMIN" : "USER",
   );
   const [saving, setSaving] = useState(false);
+  const { confirm, dialog } = useConfirmDialog();
 
   useEffect(() => {
     setDraftRole(user.role === "ADMIN" ? "ADMIN" : "USER");
@@ -68,9 +71,11 @@ export function StaffRoleCell({
       return;
     }
 
-    const confirmed = window.confirm(
-      `Change ${user.name}'s role to ${staffRoleLabel(draftRole)}?`,
-    );
+    const confirmed = await confirm({
+      title: "Change role",
+      message: `Change ${user.name}'s role to ${staffRoleLabel(draftRole)}?`,
+      confirmLabel: "Change role",
+    });
     if (!confirmed) {
       return;
     }
@@ -87,6 +92,8 @@ export function StaffRoleCell({
   }
 
   return (
+    <>
+    {dialog}
     <div className="flex flex-wrap items-center gap-2">
       <select
         value={draftRole}
@@ -108,5 +115,6 @@ export function StaffRoleCell({
         {saving ? "Saving…" : "Save"}
       </button>
     </div>
+    </>
   );
 }

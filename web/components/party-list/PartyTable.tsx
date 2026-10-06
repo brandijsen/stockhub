@@ -1,5 +1,6 @@
 "use client";
 
+import { useConfirmDialog } from "@/components/ConfirmDialog";
 import { Spinner } from "@/components/Spinner";
 import { apiErrorMessage } from "@/lib/api-client";
 
@@ -30,13 +31,20 @@ export function PartyTable<T extends PartyRecord>({
   onDeleted,
   onDeleteError,
 }: PartyTableProps<T>) {
+  const { confirm, dialog } = useConfirmDialog();
+
   async function handleDelete(item: T) {
     if (item.orderCount > 0) {
       onDeleteError(copy.deleteBlocked);
       return;
     }
 
-    const confirmed = window.confirm(copy.deleteConfirm(item.name));
+    const confirmed = await confirm({
+      title: copy.deleteTitle,
+      message: copy.deleteConfirm(item.name),
+      confirmLabel: "Delete",
+      tone: "danger",
+    });
     if (!confirmed) {
       return;
     }
@@ -53,6 +61,8 @@ export function PartyTable<T extends PartyRecord>({
   }
 
   return (
+    <>
+    {dialog}
     <div className="mt-6 max-w-full overflow-x-auto rounded-lg border border-zinc-200">
       <table className="min-w-full divide-y divide-zinc-200 text-sm">
         <thead className="bg-zinc-50 text-left text-zinc-600">
@@ -110,5 +120,6 @@ export function PartyTable<T extends PartyRecord>({
         </tbody>
       </table>
     </div>
+    </>
   );
 }

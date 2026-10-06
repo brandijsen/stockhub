@@ -27,6 +27,7 @@ export function ArticlesList({ canManage }: ArticlesListProps) {
 
   return (
     <div>
+      {list.confirmDialog}
       <ArticlesListHeader
         canManage={canManage}
         exporting={list.exporting}

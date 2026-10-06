@@ -1,6 +1,8 @@
 import type { ChangeEvent, FormEvent } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import { useConfirmDialog } from "@/components/ConfirmDialog";
+
 import {
   downloadArticlesExport,
   importArticlesExcel,
@@ -23,6 +25,7 @@ type UseArticlesListOptions = {
 };
 
 export function useArticlesList(options: UseArticlesListOptions = {}) {
+  const { confirm, dialog } = useConfirmDialog();
   const [articles, setArticles] = useState<ArticleListItem[]>([]);
   const [categories, setCategories] = useState<CatalogCategory[]>([]);
   const [brands, setBrands] = useState<CatalogBrand[]>([]);
@@ -226,7 +229,13 @@ export function useArticlesList(options: UseArticlesListOptions = {}) {
   }
 
   async function handleDelete(id: string, code: string) {
-    if (!window.confirm(`Delete article "${code}"?`)) {
+    const confirmed = await confirm({
+      title: "Delete article",
+      message: `Delete article "${code}"?`,
+      confirmLabel: "Delete",
+      tone: "danger",
+    });
+    if (!confirmed) {
       return;
     }
     setDeletingId(id);
@@ -283,5 +292,6 @@ export function useArticlesList(options: UseArticlesListOptions = {}) {
     handleExport,
     handleImportFile,
     handleDelete,
+    confirmDialog: dialog,
   };
 }

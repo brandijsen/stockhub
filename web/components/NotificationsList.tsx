@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { Spinner } from "@/components/Spinner";
 import { LoadingText } from "@/components/ContentSkeletons";
@@ -18,6 +18,21 @@ import {
   type Notification,
 } from "@/lib/notifications";
 
+const POLL_INTERVAL_MS = 30_000;
+
+function mergeFirstPage(
+  current: Notification[],
+  fresh: Notification[],
+): { items: Notification[]; replaceCursor: boolean } {
+  const freshIds = new Set(fresh.map((item) => item.id));
+  const coversCurrent = current.every((item) => freshIds.has(item.id));
+  if (coversCurrent) {
+    return { items: fresh, replaceCursor: true };
+  }
+  const older = current.filter((item) => !freshIds.has(item.id));
+  return { items: [...fresh, ...older], replaceCursor: false };
+}
+
 export function NotificationsList() {
   const router = useRouter();
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -27,19 +42,47 @@ export function NotificationsList() {
   const [error, setError] = useState<string | null>(null);
   const [markingId, setMarkingId] = useState<string | null>(null);
   const [openingId, setOpeningId] = useState<string | null>(null);
+  const loadingMoreRef = useRef(false);
+  const notificationsRef = useRef(notifications);
+  notificationsRef.current = notifications;
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  const load = useCallback(async (silent = false) => {
+    if (silent && loadingMoreRef.current) {
+      return;
+    }
+    if (!silent) {
+      setLoading(true);
+      setError(null);
+    }
     try {
       const { notifications: list, nextCursor: cursor } =
         await fetchNotifications();
-      setNotifications(list);
-      setNextCursor(cursor);
+      if (silent && loadingMoreRef.current) {
+        return;
+      }
+      if (silent) {
+        setNotifications((current) => {
+          const merged = mergeFirstPage(current, list);
+          notificationsRef.current = merged.items;
+          if (merged.replaceCursor) {
+            setNextCursor(cursor);
+          }
+          return merged.items;
+        });
+      } else {
+        notificationsRef.current = list;
+        setNotifications(list);
+        setNextCursor(cursor);
+      }
+      if (silent) {
+        setError(null);
+      }
     } catch (e) {
       setError(apiErrorMessage(e, "Failed to load notifications"));
     } finally {
-      setLoading(false);
+      if (!silent) {
+        setLoading(false);
+      }
     }
   }, []);
 
@@ -48,22 +91,33 @@ export function NotificationsList() {
       return;
     }
 
+    loadingMoreRef.current = true;
     setLoadingMore(true);
     setError(null);
     try {
       const { notifications: list, nextCursor: cursor } =
         await fetchNotifications(nextCursor);
-      setNotifications((current) => [...current, ...list]);
+      setNotifications((current) => {
+        const next = [...current, ...list];
+        notificationsRef.current = next;
+        return next;
+      });
       setNextCursor(cursor);
     } catch (e) {
       setError(apiErrorMessage(e, "Failed to load more notifications"));
     } finally {
+      loadingMoreRef.current = false;
       setLoadingMore(false);
     }
   }, [nextCursor, loadingMore]);
 
   useEffect(() => {
     void load();
+    const intervalId = window.setInterval(
+      () => void load(true),
+      POLL_INTERVAL_MS,
+    );
+    return () => window.clearInterval(intervalId);
   }, [load]);
 
   async function handleMarkRead(notification: Notification) {

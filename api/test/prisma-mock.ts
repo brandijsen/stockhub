@@ -34,6 +34,9 @@ function createPrismaMock() {
       findMany: vi.fn(),
       update: vi.fn(),
     },
+    supplierOrderLine: {
+      update: vi.fn(),
+    },
     $transaction: vi.fn(),
   };
 

@@ -25,6 +25,7 @@ const copy: PartyListCopy = {
   createError: "Failed to create customer",
   updateError: "Failed to update customer",
   deleteBlocked: "This customer has orders and cannot be deleted.",
+  deleteTitle: "Delete customer",
   deleteConfirm: (name) =>
     `Delete customer "${name}"? This cannot be undone.`,
   deleteError: "Failed to delete customer",

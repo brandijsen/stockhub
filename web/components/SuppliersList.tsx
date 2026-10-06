@@ -25,6 +25,7 @@ const copy: PartyListCopy = {
   createError: "Failed to create supplier",
   updateError: "Failed to update supplier",
   deleteBlocked: "This supplier has purchase orders and cannot be deleted.",
+  deleteTitle: "Delete supplier",
   deleteConfirm: (name) =>
     `Delete supplier "${name}"? This cannot be undone.`,
   deleteError: "Failed to delete supplier",
