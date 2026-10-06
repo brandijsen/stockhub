@@ -50,6 +50,7 @@ const NOTIFICATION_TYPE_LABELS: Record<string, string> = {
   SUPPLIER_ORDER_CHECKED: "Goods checked",
   SUPPLIER_ORDER_CLOSED: "Order closed",
   CUSTOMER_ORDER_CREATED: "Customer order",
+  CUSTOMER_ORDER_PICKED_UP: "Picked up",
   DIRECT_MESSAGE: "Message",
 };
 
@@ -71,6 +72,8 @@ export function notificationTypeBadgeClass(type: string): string {
       return "bg-violet-100 text-violet-900";
     case "CUSTOMER_ORDER_CREATED":
       return "bg-emerald-100 text-emerald-900";
+    case "CUSTOMER_ORDER_PICKED_UP":
+      return "bg-teal-100 text-teal-900";
     case "DIRECT_MESSAGE":
       return "bg-violet-100 text-violet-900";
     default:

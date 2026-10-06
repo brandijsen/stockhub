@@ -1,6 +1,9 @@
 import type { Request, Response } from "express";
 
+import { notifyCustomerOrderPickedUp } from "../../../lib/notify-customer-order-picked-up";
 import { prisma } from "../../../lib/prisma";
+import { displayName } from "../../auth/session";
+import type { AuthenticatedRequest } from "../../../middleware/require-auth";
 import {
   customerOrderInclude,
   serializeCustomerOrder,
@@ -11,6 +14,7 @@ export async function confirmCustomerOrderPickup(
   res: Response,
 ): Promise<void> {
   const { id } = req.params;
+  const session = (req as AuthenticatedRequest).sessionUser;
 
   try {
     const existing = await prisma.customerOrder.findUnique({
@@ -32,6 +36,20 @@ export async function confirmCustomerOrderPickup(
       where: { id },
       data: { status: "PICKED_UP" },
       include: customerOrderInclude,
+    });
+
+    const actor = await prisma.user.findUnique({
+      where: { id: session.sub },
+      select: { firstName: true, lastName: true },
+    });
+    const actorName = actor ? displayName(actor) : "A team member";
+
+    await notifyCustomerOrderPickedUp({
+      customerOrderId: order.id,
+      orderCode: order.code,
+      customerName: order.customer.name,
+      actorUserId: session.sub,
+      actorName,
     });
 
     res.json({ order: serializeCustomerOrder(order) });

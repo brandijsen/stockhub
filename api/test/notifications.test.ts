@@ -17,6 +17,9 @@ const { droppedBelowMinimum, notifyLowStock } = await import(
 const { notifyCustomerOrderCreated } = await import(
   "../src/lib/notify-customer-order-created"
 );
+const { notifyCustomerOrderPickedUp } = await import(
+  "../src/lib/notify-customer-order-picked-up"
+);
 const { notifySupplierOrderClosed } = await import(
   "../src/lib/notify-supplier-order-closed"
 );
@@ -74,6 +77,28 @@ describe("team notifications", () => {
           type: "CUSTOMER_ORDER_CREATED",
           customerOrderId: "order1",
           body: "Ada Lovelace created order CO-000001 for Ada. Stock was unloaded.",
+        }),
+      ],
+    });
+  });
+
+  it("links a picked-up customer order", async () => {
+    await notifyCustomerOrderPickedUp({
+      customerOrderId: "order1",
+      orderCode: "CO-000001",
+      customerName: "Ada",
+      actorUserId: "user1",
+      actorName: "Ada Lovelace",
+    });
+
+    expect(prisma.notification.createMany).toHaveBeenCalledWith({
+      data: [
+        expect.objectContaining({
+          userId: "user2",
+          type: "CUSTOMER_ORDER_PICKED_UP",
+          customerOrderId: "order1",
+          title: "Customer order picked up",
+          body: "Ada Lovelace confirmed pickup of order CO-000001 for Ada.",
         }),
       ],
     });
