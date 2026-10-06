@@ -37,6 +37,12 @@ vi.mock("../src/lib/notify-supplier-order-checked", () => ({
 const { createCustomerOrder } = await import(
   "../src/routes/customer-orders/handlers/create"
 );
+const { updateCustomerOrder } = await import(
+  "../src/routes/customer-orders/handlers/update"
+);
+const { deleteCustomerOrder } = await import(
+  "../src/routes/customer-orders/handlers/delete"
+);
 const { adjustArticleStock } = await import(
   "../src/routes/articles/handlers/adjust-stock"
 );
@@ -476,5 +482,257 @@ describe("supplier order checking", () => {
         actorUserId: "user1",
       }),
     );
+  });
+});
+
+function openCustomerOrder(lines: { articleId: string; quantity: number }[]) {
+  return {
+    id: "order1",
+    code: "CO-000001",
+    status: "OPEN" as const,
+    lines,
+  };
+}
+
+function savedCustomerOrder(quantity: number) {
+  return {
+    id: "order1",
+    code: "CO-000001",
+    status: "OPEN",
+    createdAt: new Date("2026-10-06T10:00:00.000Z"),
+    updatedAt: new Date("2026-10-06T11:00:00.000Z"),
+    customer: {
+      id: "customer1",
+      name: "Atelier Spiga",
+      email: null,
+      phone: null,
+      address: null,
+    },
+    createdBy: {
+      id: "user1",
+      firstName: "Ada",
+      lastName: "Lovelace",
+      email: "ada@example.com",
+    },
+    lines: [
+      {
+        id: "line1",
+        articleId: "art1",
+        quantity,
+        article: { id: "art1", code: "BAG", name: "Bag", stock: 8 },
+      },
+    ],
+  };
+}
+
+function customerOrderRequest(body: unknown): Request {
+  return {
+    params: { id: "order1" },
+    body,
+    sessionUser,
+  } as unknown as Request;
+}
+
+describe("customer order edit and cancel", () => {
+  it("unloads only the extra quantity when a line increases", async () => {
+    prismaMock.customerOrder.findUnique.mockResolvedValue(
+      openCustomerOrder([{ articleId: "art1", quantity: 4 }]),
+    );
+    prismaMock.customer.findUnique.mockResolvedValue({ id: "customer1" });
+    prismaMock.article.findMany.mockResolvedValue([
+      {
+        id: "art1",
+        code: "BAG",
+        name: "Bag",
+        stock: 10,
+        isActive: true,
+      },
+    ]);
+    prismaMock.customerOrder.updateMany.mockResolvedValue({ count: 1 });
+    prismaMock.article.updateMany.mockResolvedValue({ count: 1 });
+    prismaMock.article.findUnique.mockResolvedValue({
+      id: "art1",
+      code: "BAG",
+      name: "Bag",
+      stock: 8,
+      minThreshold: 5,
+    });
+    prismaMock.customerOrderLine.deleteMany.mockResolvedValue({ count: 1 });
+    prismaMock.customerOrder.update.mockResolvedValue(savedCustomerOrder(6));
+    const res = mockResponse();
+
+    await updateCustomerOrder(
+      customerOrderRequest({
+        customerId: "customer1",
+        lines: [{ articleId: "art1", quantity: 6 }],
+      }),
+      res as unknown as Response,
+    );
+
+    expect(prismaMock.article.updateMany).toHaveBeenCalledWith({
+      where: { id: "art1", stock: { gte: 2 } },
+      data: { stock: { decrement: 2 } },
+    });
+    expect(prismaMock.article.update).not.toHaveBeenCalled();
+    expect(prismaMock.movement.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        type: "UNLOAD",
+        delta: -2,
+        articleId: "art1",
+        relatedCustomerOrderId: "order1",
+      }),
+    });
+    expect(notifyLowStock).not.toHaveBeenCalled();
+    expect(res.statusCode).toBe(200);
+  });
+
+  it("returns stock when a line quantity goes down", async () => {
+    prismaMock.customerOrder.findUnique.mockResolvedValue(
+      openCustomerOrder([{ articleId: "art1", quantity: 4 }]),
+    );
+    prismaMock.customer.findUnique.mockResolvedValue({ id: "customer1" });
+    prismaMock.article.findMany.mockResolvedValue([
+      {
+        id: "art1",
+        code: "BAG",
+        name: "Bag",
+        stock: 10,
+        isActive: true,
+      },
+    ]);
+    prismaMock.customerOrder.updateMany.mockResolvedValue({ count: 1 });
+    prismaMock.customerOrderLine.deleteMany.mockResolvedValue({ count: 1 });
+    prismaMock.customerOrder.update.mockResolvedValue(savedCustomerOrder(2));
+    const res = mockResponse();
+
+    await updateCustomerOrder(
+      customerOrderRequest({
+        customerId: "customer1",
+        lines: [{ articleId: "art1", quantity: 2 }],
+      }),
+      res as unknown as Response,
+    );
+
+    expect(prismaMock.article.update).toHaveBeenCalledWith({
+      where: { id: "art1" },
+      data: { stock: { increment: 2 } },
+    });
+    expect(prismaMock.article.updateMany).not.toHaveBeenCalled();
+    expect(prismaMock.movement.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        type: "LOAD",
+        delta: 2,
+        articleId: "art1",
+      }),
+    });
+    expect(res.statusCode).toBe(200);
+  });
+
+  it("rejects an edit that needs more stock than is free", async () => {
+    prismaMock.customerOrder.findUnique.mockResolvedValue(
+      openCustomerOrder([{ articleId: "art1", quantity: 4 }]),
+    );
+    prismaMock.customer.findUnique.mockResolvedValue({ id: "customer1" });
+    prismaMock.article.findMany.mockResolvedValue([
+      {
+        id: "art1",
+        code: "BAG",
+        name: "Bag",
+        stock: 1,
+        isActive: true,
+      },
+    ]);
+    const res = mockResponse();
+
+    await updateCustomerOrder(
+      customerOrderRequest({
+        customerId: "customer1",
+        lines: [{ articleId: "art1", quantity: 6 }],
+      }),
+      res as unknown as Response,
+    );
+
+    expect(prismaMock.$transaction).not.toHaveBeenCalled();
+    expect(res.statusCode).toBe(400);
+    expect(res.body).toEqual({
+      error: "Insufficient stock for BAG (available 5, requested 6)",
+    });
+  });
+
+  it("refuses to edit an order after pickup", async () => {
+    prismaMock.customerOrder.findUnique.mockResolvedValue({
+      ...openCustomerOrder([{ articleId: "art1", quantity: 4 }]),
+      status: "PICKED_UP",
+    });
+    const res = mockResponse();
+
+    await updateCustomerOrder(
+      customerOrderRequest({
+        customerId: "customer1",
+        lines: [{ articleId: "art1", quantity: 2 }],
+      }),
+      res as unknown as Response,
+    );
+
+    expect(prismaMock.$transaction).not.toHaveBeenCalled();
+    expect(res.statusCode).toBe(409);
+    expect(res.body).toEqual({
+      error: "Only open orders allow this action",
+    });
+  });
+
+  it("restores every line when an open order is cancelled", async () => {
+    prismaMock.customerOrder.findUnique.mockResolvedValue(
+      openCustomerOrder([
+        { articleId: "art1", quantity: 4 },
+        { articleId: "art2", quantity: 2 },
+      ]),
+    );
+    prismaMock.customerOrder.updateMany.mockResolvedValue({ count: 1 });
+    const res = mockResponse();
+
+    await deleteCustomerOrder(
+      customerOrderRequest(undefined),
+      res as unknown as Response,
+    );
+
+    expect(prismaMock.article.update).toHaveBeenCalledWith({
+      where: { id: "art1" },
+      data: { stock: { increment: 4 } },
+    });
+    expect(prismaMock.article.update).toHaveBeenCalledWith({
+      where: { id: "art2" },
+      data: { stock: { increment: 2 } },
+    });
+    expect(prismaMock.movement.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        type: "LOAD",
+        delta: 4,
+        articleId: "art1",
+        note: "Returned stock for customer order CO-000001",
+      }),
+    });
+    expect(prismaMock.customerOrder.delete).toHaveBeenCalledWith({
+      where: { id: "order1" },
+    });
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toEqual({ ok: true });
+  });
+
+  it("refuses to cancel an order after pickup", async () => {
+    prismaMock.customerOrder.findUnique.mockResolvedValue({
+      ...openCustomerOrder([{ articleId: "art1", quantity: 4 }]),
+      status: "PICKED_UP",
+    });
+    const res = mockResponse();
+
+    await deleteCustomerOrder(
+      customerOrderRequest(undefined),
+      res as unknown as Response,
+    );
+
+    expect(prismaMock.$transaction).not.toHaveBeenCalled();
+    expect(prismaMock.article.update).not.toHaveBeenCalled();
+    expect(res.statusCode).toBe(409);
   });
 });

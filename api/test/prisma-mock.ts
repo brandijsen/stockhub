@@ -23,7 +23,14 @@ function createPrismaMock() {
     customerOrder: {
       create: vi.fn(),
       findMany: vi.fn(),
+      findUnique: vi.fn(),
       findUniqueOrThrow: vi.fn(),
+      update: vi.fn(),
+      updateMany: vi.fn(),
+      delete: vi.fn(),
+    },
+    customerOrderLine: {
+      deleteMany: vi.fn(),
     },
     movement: {
       create: vi.fn(),

@@ -13,7 +13,7 @@ export function canManageAdminCatalog(role: string | undefined | null): boolean 
   return role === "ADMIN" || role === "SUPERADMIN";
 }
 
-/** Create customer sales orders (stock is unloaded on creation). */
+/** Create, edit, and cancel customer sales orders before pickup. */
 export function canManageCustomerOrders(
   role: string | undefined | null,
 ): boolean {

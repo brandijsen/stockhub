@@ -100,6 +100,24 @@ export async function createCustomerOrder(payload: {
   return data.order;
 }
 
+export async function updateCustomerOrder(
+  id: string,
+  payload: {
+    customerId: string;
+    lines: CreateCustomerOrderLineInput[];
+  },
+): Promise<CustomerOrder> {
+  const { data } = await api.patch<CustomerOrderResponse>(
+    `/api/customer-orders/${id}`,
+    payload,
+  );
+  return data.order;
+}
+
+export async function deleteCustomerOrder(id: string): Promise<void> {
+  await api.delete(`/api/customer-orders/${id}`);
+}
+
 export async function confirmCustomerOrderPickup(
   id: string,
 ): Promise<CustomerOrder> {

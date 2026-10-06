@@ -22,4 +22,7 @@ export const listCustomerOrdersQuerySchema = z
   })
   .strict();
 
+export const updateCustomerOrderSchema = createCustomerOrderSchema;
+
 export type CreateCustomerOrderInput = z.infer<typeof createCustomerOrderSchema>;
+export type UpdateCustomerOrderInput = z.infer<typeof updateCustomerOrderSchema>;

@@ -8,7 +8,11 @@ import { articleFormInputClass } from "@/components/article-form/input-styles";
 import { LoadingText } from "@/components/ContentSkeletons";
 import { apiErrorMessage } from "@/lib/api-client";
 import { fetchArticles, type ArticleListItem } from "@/lib/articles";
-import { createCustomerOrder } from "@/lib/customer-orders";
+import {
+  createCustomerOrder,
+  updateCustomerOrder,
+  type CustomerOrder,
+} from "@/lib/customer-orders";
 import { fetchCustomers, type Customer } from "@/lib/customers";
 
 type DraftLine = {
@@ -25,15 +29,33 @@ function newDraftLine(): DraftLine {
   };
 }
 
-export function CustomerOrderForm() {
+function stockAvailableToOrder(
+  article: ArticleListItem,
+  order?: CustomerOrder,
+): number {
+  const reserved =
+    order?.lines.find((line) => line.articleId === article.id)?.quantity ?? 0;
+  return article.stock + reserved;
+}
+
+export function CustomerOrderForm({ order }: { order?: CustomerOrder }) {
+  const isEdit = order != null;
   const router = useRouter();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [articles, setArticles] = useState<ArticleListItem[]>([]);
   const [loadingOptions, setLoadingOptions] = useState(true);
   const [optionsError, setOptionsError] = useState<string | null>(null);
 
-  const [customerId, setCustomerId] = useState("");
-  const [lines, setLines] = useState<DraftLine[]>([newDraftLine()]);
+  const [customerId, setCustomerId] = useState(order?.customer.id ?? "");
+  const [lines, setLines] = useState<DraftLine[]>(() =>
+    order
+      ? order.lines.map((line) => ({
+          key: line.id,
+          articleId: line.articleId,
+          quantity: String(line.quantity),
+        }))
+      : [newDraftLine()],
+  );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -52,7 +74,7 @@ export function CustomerOrderForm() {
         }
         setCustomers(customerList);
         setArticles(articleResponse.articles);
-        if (customerList.length === 1) {
+        if (!isEdit && customerList.length === 1) {
           setCustomerId(customerList[0].id);
         }
       } catch (e) {
@@ -69,7 +91,7 @@ export function CustomerOrderForm() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [isEdit]);
 
   const canSubmit =
     customerId !== "" &&
@@ -112,13 +134,28 @@ export function CustomerOrderForm() {
     setSaving(true);
     setError(null);
     try {
-      const order = await createCustomerOrder({
-        customerId,
-        lines: payloadLines,
-      });
-      router.push(`/customer-orders/${order.id}`);
+      if (isEdit) {
+        const updated = await updateCustomerOrder(order.id, {
+          customerId,
+          lines: payloadLines,
+        });
+        router.push(`/customer-orders/${updated.id}`);
+      } else {
+        const created = await createCustomerOrder({
+          customerId,
+          lines: payloadLines,
+        });
+        router.push(`/customer-orders/${created.id}`);
+      }
     } catch (e) {
-      setError(apiErrorMessage(e, "Failed to create customer order"));
+      setError(
+        apiErrorMessage(
+          e,
+          isEdit
+            ? "Failed to update customer order"
+            : "Failed to create customer order",
+        ),
+      );
     } finally {
       setSaving(false);
     }
@@ -127,6 +164,29 @@ export function CustomerOrderForm() {
   if (loadingOptions) {
     return <LoadingText className="mt-8" />;
   }
+
+  const pickerArticles = order
+    ? [
+        ...articles,
+        ...order.lines
+          .filter(
+            (line) => !articles.some((article) => article.id === line.article.id),
+          )
+          .map((line) => ({
+            id: line.article.id,
+            code: line.article.code,
+            name: line.article.name,
+            stock: line.article.stock,
+            minThreshold: 0,
+            lowStock: false,
+            isActive: true,
+            price: null,
+            imageUrl: null,
+            brand: null,
+            category: null,
+          })),
+      ]
+    : articles;
 
   return (
     <form onSubmit={(event) => void handleSubmit(event)} className="space-y-6">
@@ -203,7 +263,7 @@ export function CustomerOrderForm() {
                 className={articleFormInputClass}
               >
                 <option value="">Select article</option>
-                {articles.map((article) => (
+                {pickerArticles.map((article) => (
                   <option
                     key={article.id}
                     value={article.id}
@@ -212,7 +272,8 @@ export function CustomerOrderForm() {
                       lines.some((other) => other.articleId === article.id)
                     }
                   >
-                    {article.code} — {article.name} (stock {article.stock})
+                    {article.code} — {article.name} (stock{" "}
+                    {stockAvailableToOrder(article, order)})
                   </option>
                 ))}
               </select>
@@ -262,10 +323,16 @@ export function CustomerOrderForm() {
           disabled={!canSubmit}
           className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {saving ? "Creating…" : "Create order"}
+          {saving
+            ? isEdit
+              ? "Saving…"
+              : "Creating…"
+            : isEdit
+              ? "Save changes"
+              : "Create order"}
         </button>
         <Link
-          href="/customer-orders"
+          href={isEdit ? `/customer-orders/${order.id}` : "/customer-orders"}
           className="rounded-lg border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
         >
           Cancel
