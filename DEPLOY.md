@@ -24,7 +24,8 @@ In the Vercel project **Settings → General**:
 | Framework Preset | **Next.js** (not “Other”) |
 | Build Command | empty (default) or `npm run build` |
 | Output Directory | **empty** — do not use `public` or `.` |
-| Production Branch | **`development`** (or `main` after merge) |
+
+Production branch: **Settings → Environments → Production → Branch Tracking** = **`main`**.
 
 Env (Production): `AUTH_SECRET` (same as API), `API_URL` (public Render URL, no trailing slash). Do not set `NODE_ENV` manually if it breaks the build (Tailwind devDependencies).
 
