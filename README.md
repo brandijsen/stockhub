@@ -53,11 +53,13 @@ npx dotenv -e ../.env -- prisma migrate deploy
 npx dotenv -e ../.env -- prisma generate
 ```
 
-Optional superadmin bootstrap (requires `SEED_SUPERADMIN_*` in `.env`):
+Optional bootstrap (requires `SEED_SUPERADMIN_EMAIL` and `SEED_SUPERADMIN_PASSWORD` in `.env`):
 
 ```bash
 npx dotenv -e ../.env -- prisma db seed
 ```
+
+This upserts that superadmin (and resets their password to `SEED_SUPERADMIN_PASSWORD`), demotes any other superadmin to admin, and upserts the clothing categories and brands the catalog uses: Shirts, Trousers, Knitwear, Outerwear, Dresses, and Campo, Harbor, Marlo, Studio Nord, Viale. It does not create articles, customers, suppliers, or orders.
 
 Other useful scripts are defined in `api/package.json` (`db:migrate`, `db:studio`, etc.).
 

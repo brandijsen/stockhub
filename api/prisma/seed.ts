@@ -11,16 +11,21 @@ dotenv.config({
 
 const prisma = new PrismaClient();
 
-/** Product families for the handbags catalog (idempotent upsert by slug). */
+/** Clothing families used by the catalog (idempotent upsert by slug). */
 const PRODUCT_CATEGORIES = [
-  { name: "Tote", slug: "tote" },
-  { name: "Crossbody", slug: "crossbody" },
-  { name: "Clutch", slug: "clutch" },
-  { name: "Shoulder bag", slug: "shoulder-bag" },
-  { name: "Bucket", slug: "bucket" },
-  { name: "Backpack", slug: "backpack" },
-  { name: "Wallet", slug: "wallet" },
-  { name: "Belt bag", slug: "belt-bag" },
+  { name: "Shirts", slug: "shirts" },
+  { name: "Trousers", slug: "trousers" },
+  { name: "Knitwear", slug: "knitwear" },
+  { name: "Outerwear", slug: "outerwear" },
+  { name: "Dresses", slug: "dresses" },
+] as const;
+
+const PRODUCT_BRANDS = [
+  "Campo",
+  "Harbor",
+  "Marlo",
+  "Studio Nord",
+  "Viale",
 ] as const;
 
 async function seedCategories(): Promise<void> {
@@ -33,6 +38,18 @@ async function seedCategories(): Promise<void> {
   }
 
   console.log(`Categories ready: ${PRODUCT_CATEGORIES.map((c) => c.name).join(", ")}`);
+}
+
+async function seedBrands(): Promise<void> {
+  for (const name of PRODUCT_BRANDS) {
+    await prisma.brand.upsert({
+      where: { name },
+      update: {},
+      create: { name },
+    });
+  }
+
+  console.log(`Brands ready: ${PRODUCT_BRANDS.join(", ")}`);
 }
 
 function seedAdminNames(): { firstName: string; lastName: string } {
@@ -57,6 +74,7 @@ function seedAdminNames(): { firstName: string; lastName: string } {
 
 async function main() {
   await seedCategories();
+  await seedBrands();
 
   const email = process.env.SEED_SUPERADMIN_EMAIL;
   const password = process.env.SEED_SUPERADMIN_PASSWORD;

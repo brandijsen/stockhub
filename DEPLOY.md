@@ -68,7 +68,7 @@ All migrations should show as applied. Recent ones required for customers and cu
 npm run db:seed
 ```
 
-Requires `SEED_SUPERADMIN_EMAIL`, `SEED_SUPERADMIN_PASSWORD`, and name fields in `.env`.
+Requires `SEED_SUPERADMIN_EMAIL` and `SEED_SUPERADMIN_PASSWORD` in `.env`. Also upserts the clothing categories and brands. It resets that superadmin's password and does not load articles or orders.
 
 On Windows, stop the API dev server before `prisma generate` if you hit `EPERM` on the query engine DLL.
 
@@ -192,7 +192,7 @@ cd web && npm run build && npm start
 ### Customer orders (admin)
 
 - [ ] Create customer order → stock decreased
-- [ ] Confirm pickup → order closed
+- [ ] Confirm pickup → status Picked up, stock unchanged
 
 ### Dashboard
 
